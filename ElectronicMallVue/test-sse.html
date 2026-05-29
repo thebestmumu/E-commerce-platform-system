@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>SSE 测试</title>
+</head>
+<body>
+  <h1>SSE 流式测试页面</h1>
+  <button onclick="startTest()">开始测试</button>
+  <button onclick="stopTest()">停止测试</button>
+  <div id="log"></div>
+  
+  <script>
+    let eventSource = null;
+    
+    function log(message) {
+      const div = document.createElement('div');
+      div.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+      document.getElementById('log').appendChild(div);
+    }
+    
+    function startTest() {
+      log('=== 开始测试 ===');
+      
+      // 测试 1: 使用原生 EventSource (GET 请求)
+      log('测试 1: 使用 EventSource (GET 请求)');
+      eventSource = new EventSource('http://localhost:9191/api/ai/chat/streamGet?message=你好');
+      
+      eventSource.onopen = function(e) {
+        log('✅ 连接已打开，状态：' + e.target.readyState);
+      };
+      
+      eventSource.onmessage = function(e) {
+        log('✅ 收到消息 - event: ' + e.type + ', data: ' + e.data);
+      };
+      
+      eventSource.onerror = function(e) {
+        log('❌ 错误：' + JSON.stringify(e));
+        eventSource.close();
+      };
+      
+      // 测试 2: 使用 fetch + ReadableStream
+      setTimeout(() => {
+        log('');
+        log('测试 2: 使用 fetch + ReadableStream (POST 请求)');
+        testFetchStream();
+      }, 2000);
+    }
+    
+    async function testFetchStream() {
+      try {
+        const response = await fetch('http://localhost:9191/api/ai/chat/stream', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            message: '你好',
+            userId: null,
+            history: []
+          })
+        });
+        
+        log('✅ 响应状态：' + response.status);
+        log('✅ Content-Type: ' + response.headers.get('content-type'));
+        
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) {
+            log('✅ 读取完成');
+            break;
+          }
+          
+          const text = decoder.decode(value);
+          log('✅ 原始数据：' + text.replace(/\n/g, '\\n'));
+        }
+      } catch (error) {
+        log('❌ fetch 错误：' + error.message);
+      }
+    }
+    
+    function stopTest() {
+      if (eventSource) {
+        eventSource.close();
+        log('已停止');
+      }
+    }
+  </script>
+</body>
+</html>

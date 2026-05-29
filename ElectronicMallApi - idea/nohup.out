@@ -1,0 +1,291 @@
+Project Path: file:/Users/a123/Downloads/项目/graduate_design/ElectronicMallApi - idea/target/ElectronicMallApi-0.0.1-SNAPSHOT.jar!/BOOT-INF/classes!
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+ :: Spring Boot ::                (v2.5.6)
+
+2026-04-25 10:36:05.074  INFO 57361 --- [           main] c.rabbiter.em.ElectronicMallApplication  : Starting ElectronicMallApplication v0.0.1-SNAPSHOT using Java 1.8.0_472 on MacBookPro.mshome.net with PID 57361 (/Users/a123/Downloads/项目/graduate_design/ElectronicMallApi - idea/target/ElectronicMallApi-0.0.1-SNAPSHOT.jar started by a123 in /Users/a123/Downloads/项目/graduate_design/ElectronicMallApi - idea)
+2026-04-25 10:36:05.077  INFO 57361 --- [           main] c.rabbiter.em.ElectronicMallApplication  : No active profile set, falling back to default profiles: default
+2026-04-25 10:36:07.244  INFO 57361 --- [           main] .s.d.r.c.RepositoryConfigurationDelegate : Multiple Spring Data modules found, entering strict repository configuration mode!
+2026-04-25 10:36:07.254  INFO 57361 --- [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data Redis repositories in DEFAULT mode.
+2026-04-25 10:36:07.341  INFO 57361 --- [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 58 ms. Found 0 Redis repository interfaces.
+2026-04-25 10:36:09.298  INFO 57361 --- [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port(s): 9191 (http)
+2026-04-25 10:36:09.319  INFO 57361 --- [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-04-25 10:36:09.319  INFO 57361 --- [           main] org.apache.catalina.core.StandardEngine  : Starting Servlet engine: [Apache Tomcat/9.0.54]
+2026-04-25 10:36:09.447  INFO 57361 --- [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2026-04-25 10:36:09.447  INFO 57361 --- [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 4252 ms
+2026-04-25 10:36:11.622  WARN 57361 --- [           main] c.b.m.core.metadata.TableInfoHelper      : Can not find table primary key in Class: "com.rabbiter.em.entity.Standard".
+2026-04-25 10:36:11.623  WARN 57361 --- [           main] c.b.m.core.injector.DefaultSqlInjector   : class com.rabbiter.em.entity.Standard ,Not found @TableId annotation, Cannot use Mybatis-Plus 'xxById' Method.
+ _ _   |_  _ _|_. ___ _ |    _ 
+| | |\/|_)(_| | |_\  |_)||_|_\ 
+     /               |         
+                        3.5.1 
+2026-04-25 10:36:12.967  WARN 57361 --- [           main] c.b.m.core.metadata.TableInfoHelper      : Can not find table primary key in Class: "com.rabbiter.em.entity.IconCategory".
+2026-04-25 10:36:12.968  WARN 57361 --- [           main] c.b.m.core.injector.DefaultSqlInjector   : class com.rabbiter.em.entity.IconCategory ,Not found @TableId annotation, Cannot use Mybatis-Plus 'xxById' Method.
+2026-04-25 10:36:13.151  WARN 57361 --- [           main] c.b.m.core.metadata.TableInfoHelper      : This primary key of "id" is primitive !不建议如此请使用包装类 in Class: "com.rabbiter.em.entity.MyFile"
+2026-04-25 10:36:15.158  INFO 57361 --- [           main] pertySourcedRequestMappingHandlerMapping : Mapped URL path [/v2/api-docs] onto method [springfox.documentation.swagger2.web.Swagger2Controller#getDocumentation(String, HttpServletRequest)]
+2026-04-25 10:36:16.347  INFO 57361 --- [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port(s): 9191 (http) with context path ''
+2026-04-25 10:36:16.353  INFO 57361 --- [           main] d.s.w.p.DocumentationPluginsBootstrapper : Context refreshed
+2026-04-25 10:36:16.406  INFO 57361 --- [           main] d.s.w.p.DocumentationPluginsBootstrapper : Found 1 custom documentation plugin(s)
+2026-04-25 10:36:16.514  INFO 57361 --- [           main] s.d.s.w.s.ApiListingReferenceScanner     : Scanning for api listing references
+2026-04-25 10:36:16.960  INFO 57361 --- [           main] .d.s.w.r.o.CachingOperationNameGenerator : Generating unique operation named: deleteUsingDELETE_1
+2026-04-25 10:36:16.963  INFO 57361 --- [           main] .d.s.w.r.o.CachingOperationNameGenerator : Generating unique operation named: findAllUsingGET_1
+2026-04-25 10:36:16.974  INFO 57361 --- [           main] .d.s.w.r.o.CachingOperationNameGenerator : Generating unique operation named: saveUsingPOST_1
+2026-04-25 10:36:16.976  INFO 57361 --- [           main] .d.s.w.r.o.CachingOperationNameGenerator : Generating unique operation named: updateUsingPUT_1
+2026-04-25 10:36:16.979  INFO 57361 --- [           main] .d.s.w.r.o.CachingOperationNameGenerator : Generating unique operation named: deleteUsingDELETE_2
+2026-04-25 10:36:16.981  INFO 57361 --- [           main] .d.s.w.r.o.CachingOperationNameGenerator : Generating unique operation named: findAllUsingGET_2
+2026-04-25 10:36:16.994  INFO 57361 --- [           main] .d.s.w.r.o.CachingOperationNameGenerator : Generating unique operation named: saveUsingPOST_2
+2026-04-25 10:36:17.005  INFO 57361 --- [           main] .d.s.w.r.o.CachingOperationNameGenerator : Generating unique operation named: updateUsingPUT_2
+2026-04-25 10:36:17.028  INFO 57361 --- [           main] .d.s.w.r.o.CachingOperationNameGenerator : Generating unique operation named: findAllUsingGET_3
+2026-04-25 10:36:17.031  INFO 57361 --- [           main] .d.s.w.r.o.CachingOperationNameGenerator : Generating unique operation named: findByIdUsingGET_1
+2026-04-25 10:36:17.032  INFO 57361 --- [           main] .d.s.w.r.o.CachingOperationNameGenerator : Generating unique operation named: saveUsingPOST_3
+2026-04-25 10:36:17.035  INFO 57361 --- [           main] .d.s.w.r.o.CachingOperationNameGenerator : Generating unique operation named: updateUsingPUT_3
+2026-04-25 10:36:17.054  INFO 57361 --- [           main] .d.s.w.r.o.CachingOperationNameGenerator : Generating unique operation named: deleteByIdUsingDELETE_1
+2026-04-25 10:36:17.056  INFO 57361 --- [           main] .d.s.w.r.o.CachingOperationNameGenerator : Generating unique operation named: downloadUsingGET_1
+2026-04-25 10:36:17.058  INFO 57361 --- [           main] .d.s.w.r.o.CachingOperationNameGenerator : Generating unique operation named: selectPageUsingGET_1
+2026-04-25 10:36:17.088  INFO 57361 --- [           main] .d.s.w.r.o.CachingOperationNameGenerator : Generating unique operation named: deleteUsingDELETE_3
+2026-04-25 10:36:17.091  INFO 57361 --- [           main] .d.s.w.r.o.CachingOperationNameGenerator : Generating unique operation named: findAllUsingGET_4
+2026-04-25 10:36:17.092  INFO 57361 --- [           main] .d.s.w.r.o.CachingOperationNameGenerator : Generating unique operation named: findByIdUsingGET_2
+2026-04-25 10:36:17.181  INFO 57361 --- [           main] .d.s.w.r.o.CachingOperationNameGenerator : Generating unique operation named: saveUsingPOST_4
+2026-04-25 10:36:17.206  INFO 57361 --- [           main] .d.s.w.r.o.CachingOperationNameGenerator : Generating unique operation named: updateUsingPUT_4
+2026-04-25 10:36:17.210  INFO 57361 --- [           main] .d.s.w.r.o.CachingOperationNameGenerator : Generating unique operation named: deleteUsingGET_1
+2026-04-25 10:36:17.212  INFO 57361 --- [           main] .d.s.w.r.o.CachingOperationNameGenerator : Generating unique operation named: findAllUsingGET_5
+2026-04-25 10:36:17.215  INFO 57361 --- [           main] .d.s.w.r.o.CachingOperationNameGenerator : Generating unique operation named: findByIdUsingGET_3
+2026-04-25 10:36:17.225  INFO 57361 --- [           main] .d.s.w.r.o.CachingOperationNameGenerator : Generating unique operation named: saveUsingPOST_5
+2026-04-25 10:36:17.228  INFO 57361 --- [           main] .d.s.w.r.o.CachingOperationNameGenerator : Generating unique operation named: updateUsingPUT_5
+2026-04-25 10:36:17.239  INFO 57361 --- [           main] .d.s.w.r.o.CachingOperationNameGenerator : Generating unique operation named: deleteUsingDELETE_4
+2026-04-25 10:36:17.241  INFO 57361 --- [           main] .d.s.w.r.o.CachingOperationNameGenerator : Generating unique operation named: findAllUsingGET_6
+2026-04-25 10:36:17.245  INFO 57361 --- [           main] .d.s.w.r.o.CachingOperationNameGenerator : Generating unique operation named: findPageUsingGET_1
+2026-04-25 10:36:17.268  INFO 57361 --- [           main] .d.s.w.r.o.CachingOperationNameGenerator : Generating unique operation named: saveUsingPOST_6
+2026-04-25 10:36:17.274  INFO 57361 --- [           main] .d.s.w.r.o.CachingOperationNameGenerator : Generating unique operation named: selectByUserIdUsingGET_1
+2026-04-25 10:36:17.276  INFO 57361 --- [           main] .d.s.w.r.o.CachingOperationNameGenerator : Generating unique operation named: updateUsingPUT_6
+2026-04-25 10:36:17.332  INFO 57361 --- [           main] .d.s.w.r.o.CachingOperationNameGenerator : Generating unique operation named: deleteBatchUsingPOST_1
+2026-04-25 10:36:17.333  INFO 57361 --- [           main] .d.s.w.r.o.CachingOperationNameGenerator : Generating unique operation named: deleteByIdUsingDELETE_2
+2026-04-25 10:36:17.333  INFO 57361 --- [           main] .d.s.w.r.o.CachingOperationNameGenerator : Generating unique operation named: findAllUsingGET_7
+2026-04-25 10:36:17.335  INFO 57361 --- [           main] .d.s.w.r.o.CachingOperationNameGenerator : Generating unique operation named: findPageUsingGET_2
+2026-04-25 10:36:17.351  INFO 57361 --- [           main] .d.s.w.r.o.CachingOperationNameGenerator : Generating unique operation named: saveUsingPOST_7
+2026-04-25 10:36:17.417  INFO 57361 --- [           main] c.rabbiter.em.ElectronicMallApplication  : Started ElectronicMallApplication in 13.255 seconds (JVM running for 14.085)
+2026-04-25 10:38:44.259  INFO 57361 --- [nio-9191-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-04-25 10:38:44.262  INFO 57361 --- [nio-9191-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2026-04-25 10:38:44.272  INFO 57361 --- [nio-9191-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 10 ms
+=== 开始流式聊天（DeepSeek 主路径版本）===
+用户消息：id 1202 舆情分析
+LangChain4j 启用状态：true
+LangChainAiService 是否可用：true
+智能帮助模式：使用 DeepSeek 进行意图识别
+=== 开始智能帮助模式（DeepSeek 版本）===
+开始构建意图识别 prompt（DeepSeek）
+构建的 prompt: 你是一个电商智能助手，需要准确识别用户的意图。请从以下选项中选择最符合用户意图的操作：
+
+【意图选项】
+1. search_goods（搜索商品）- 当用户想要搜索、查找、寻找某类商品时（**主动搜索行为**）
+2. add_to_cart（添加购物车）- 当用户想要将某个具体商品加入购物车时
+3. batch_add_cart（批量添加购物车）- 当用户想要同时添加多个商品到购物车时
+4. query_order（查询订单）- 当用户想要查询订单状态、订单信息、我的订单时
+5. navigate（页面导航）- 当用户想要**跳转**到某个页面、**去**首页、**到**个人中心等时
+6. logout（退出登录）- 当用户想要退出、注销登录时
+7. recommend_goods（通用推荐）- 当用户想要推荐商品、有什么好东西、推荐一些商品等**无具体品类**时
+8. specific_recommend（具体品类推荐）- 当用户想要推荐**具体品类**的商品时（如卫衣、手机、零食等）
+   ⚠️ **重要**：只要用户说'推荐 XXX'（XXX 是具体商品），就选择 specific_recommend，不要选择 search_goods
+   - '推荐一些卫衣' → specific_recommend
+   - '推荐手机' → specific_recommend
+   - '推荐零食' → specific_recommend
+9. quick_order（一键下单）- 当用户想要快速购买、直接下单、立即购买时
+10. track_order（订单状态跟踪）- 当用户想要查询特定订单的物流、配送进度时
+11. analyze_orders（订单历史分析）- 当用户想要查看购物报告、消费分析、购买习惯时
+12. analyze_sentiment（评论舆情分析）- 当用户想要分析商品评论、查看评分分布、情感分析时（通常需要提供商品ID）
+   - '分析商品305的评论' → analyze_sentiment
+   - '看看这个商品的评分分布' → analyze_sentiment
+   - '商品305的口碑怎么样' → analyze_sentiment
+13. analyze_sales（销售数据分析）- 当用户想要查看销售报告、销量趋势、销售排行时（通常需要提供商品ID）
+   - '生成商品305的销售报告' → analyze_sales
+   - '查看最近30天的销售数据' → analyze_sales
+   - '分析一下销售趋势' → analyze_sales
+14. chat（普通聊天）- 当用户只是闲聊、问候、或者**询问问题**、**了解信息**时
+15. unknown（暂不明白用户意图）- 当完全无法理解用户意思时
+
+【关键判断规则 - 必须严格遵守】
+❌ 如果用户的问题是**询问性质**的（包含'有什么用'、'是什么'、'怎么样'、'为什么'、'吗'等疑问词），选择 chat
+✅ 如果用户表达的是**操作意愿**的（包含'去'、'到'、'打开'、'进入'、'跳转'等动词），选择 navigate
+- 例如：'首页有什么用' → chat（询问信息，不是跳转）
+- 例如：'去首页' → navigate（执行操作）
+- 例如：'首页有什么' → chat（询问信息）
+- 例如：'到首页看看' → navigate（执行操作）
+✅ **推荐场景判断规则（重要）**：
+- 如果用户说'推荐商品'、'推荐一些商品'、'有什么好东西'、'帮我推荐'等**通用推荐**（没有具体商品类别），选择 recommend_goods
+- 如果用户提到**具体商品类别**（如卫衣、手机、零食、笔记本、鞋子、衣服等），选择 specific_recommend
+- 简单判断：有具体商品名称→specific_recommend，无具体商品名称→recommend_goods
+- 例如：'推荐一些商品' → recommend_goods（通用推荐）
+- 例如：'推荐一些卫衣' → specific_recommend（具体品类：卫衣）
+- 例如：'推荐手机' → specific_recommend（具体品类：手机）
+- 例如：'有什么好吃的' → specific_recommend（具体品类：吃的/零食）
+- 例如：'帮我推荐笔记本' → specific_recommend（具体品类：笔记本）
+✅ **评论分析判断规则**：
+- 如果用户提到'评论'、'评分'、'口碑'、'评价'、'舆情'等词，并且有商品ID或提到具体商品，选择 analyze_sentiment
+- 例如：'分析商品305的评论' → analyze_sentiment
+- 例如：'看看这个商品的评分' → analyze_sentiment
+✅ **销售分析判断规则**：
+- 如果用户提到'销售'、'销量'、'报告'、'趋势'、'排行'等词，选择 analyze_sales
+- 例如：'生成销售报告' → analyze_sales
+- 例如：'查看销售趋势' → analyze_sales
+- 如果用户提到'订单'但没有明确说查询，优先选择 query_order
+- 如果用户只是闲聊或问一些与购物无关的问题，选择 chat
+- 如果用户的问题模糊不清，难以判断，选择 unknown
+
+【示例 - 仔细学习】
+用户：'给我推荐一些商品' → recommend_goods
+用户：'首页有什么用' → chat（询问信息，不是跳转）
+用户：'首页有什么功能' → chat（询问信息）
+用户：'去首页' → navigate（执行跳转）
+用户：'到首页看看' → navigate（执行跳转）
+用户：'我想买手机' → search_goods
+用户：'我的订单在哪' → chat（询问位置信息）
+用户：'查询我的订单' → query_order
+用户：'帮我下单' → quick_order
+用户：'你好' → chat
+用户：'今天天气怎么样' → chat
+用户：'这个商品怎么样' → chat（询问信息）
+用户：'看看这个商品' → search_goods（查看商品）
+用户：'推荐一些卫衣' → specific_recommend（具体品类推荐）
+用户：'推荐手机' → specific_recommend（具体品类推荐）
+用户：'推荐零食' → specific_recommend（具体品类推荐）
+用户：'分析商品305的评论' → analyze_sentiment（评论分析）
+用户：'生成商品305的销售报告' → analyze_sales（销售分析）
+用户：'查看销售趋势' → analyze_sales（销售分析）
+
+【用户消息】
+id 1202 舆情分析
+
+请只返回一个英文单词（search_goods、add_to_cart、batch_add_cart、query_order、navigate、logout、recommend_goods、specific_recommend、quick_order、track_order、analyze_orders、analyze_sentiment、analyze_sales、chat 或 unknown），不要返回任何其他内容。
+发送意图识别请求到 DeepSeek
+>>> 调用 DeepSeek API 获取响应...
+2026-04-25 10:38:44.536  INFO 57361 --- [nio-9191-exec-1] c.r.em.ai.service.LangChainAiService     : ========================================
+2026-04-25 10:38:44.537  INFO 57361 --- [nio-9191-exec-1] c.r.em.ai.service.LangChainAiService     : LangChainAiService 收到请求
+2026-04-25 10:38:44.537  INFO 57361 --- [nio-9191-exec-1] c.r.em.ai.service.LangChainAiService     : 用户 ID: null
+2026-04-25 10:38:44.537  INFO 57361 --- [nio-9191-exec-1] c.r.em.ai.service.LangChainAiService     : 消息内容：你是一个电商智能助手，需要准确识别用户的意图。请从以下选项中选择最符合用户意图的操作：
+
+【意图选项】
+1. search_goods（搜索商品）- 当用户想要搜索、查找、寻找某类商品时（**主动搜索行为**）
+2. add_to_cart（添加购物车）- 当用户想要将某个具体商品加入购物车时
+3. batch_add_cart（批量添加购物车）- 当用户想要同时添加多个商品到购物车时
+4. query_order（查询订单）- 当用户想要查询订单状态、订单信息、我的订单时
+5. navigate（页面导航）- 当用户想要**跳转**到某个页面、**去**首页、**到**个人中心等时
+6. logout（退出登录）- 当用户想要退出、注销登录时
+7. recommend_goods（通用推荐）- 当用户想要推荐商品、有什么好东西、推荐一些商品等**无具体品类**时
+8. specific_recommend（具体品类推荐）- 当用户想要推荐**具体品类**的商品时（如卫衣、手机、零食等）
+   ⚠️ **重要**：只要用户说'推荐 XXX'（XXX 是具体商品），就选择 specific_recommend，不要选择 search_goods
+   - '推荐一些卫衣' → specific_recommend
+   - '推荐手机' → specific_recommend
+   - '推荐零食' → specific_recommend
+9. quick_order（一键下单）- 当用户想要快速购买、直接下单、立即购买时
+10. track_order（订单状态跟踪）- 当用户想要查询特定订单的物流、配送进度时
+11. analyze_orders（订单历史分析）- 当用户想要查看购物报告、消费分析、购买习惯时
+12. analyze_sentiment（评论舆情分析）- 当用户想要分析商品评论、查看评分分布、情感分析时（通常需要提供商品ID）
+   - '分析商品305的评论' → analyze_sentiment
+   - '看看这个商品的评分分布' → analyze_sentiment
+   - '商品305的口碑怎么样' → analyze_sentiment
+13. analyze_sales（销售数据分析）- 当用户想要查看销售报告、销量趋势、销售排行时（通常需要提供商品ID）
+   - '生成商品305的销售报告' → analyze_sales
+   - '查看最近30天的销售数据' → analyze_sales
+   - '分析一下销售趋势' → analyze_sales
+14. chat（普通聊天）- 当用户只是闲聊、问候、或者**询问问题**、**了解信息**时
+15. unknown（暂不明白用户意图）- 当完全无法理解用户意思时
+
+【关键判断规则 - 必须严格遵守】
+❌ 如果用户的问题是**询问性质**的（包含'有什么用'、'是什么'、'怎么样'、'为什么'、'吗'等疑问词），选择 chat
+✅ 如果用户表达的是**操作意愿**的（包含'去'、'到'、'打开'、'进入'、'跳转'等动词），选择 navigate
+- 例如：'首页有什么用' → chat（询问信息，不是跳转）
+- 例如：'去首页' → navigate（执行操作）
+- 例如：'首页有什么' → chat（询问信息）
+- 例如：'到首页看看' → navigate（执行操作）
+✅ **推荐场景判断规则（重要）**：
+- 如果用户说'推荐商品'、'推荐一些商品'、'有什么好东西'、'帮我推荐'等**通用推荐**（没有具体商品类别），选择 recommend_goods
+- 如果用户提到**具体商品类别**（如卫衣、手机、零食、笔记本、鞋子、衣服等），选择 specific_recommend
+- 简单判断：有具体商品名称→specific_recommend，无具体商品名称→recommend_goods
+- 例如：'推荐一些商品' → recommend_goods（通用推荐）
+- 例如：'推荐一些卫衣' → specific_recommend（具体品类：卫衣）
+- 例如：'推荐手机' → specific_recommend（具体品类：手机）
+- 例如：'有什么好吃的' → specific_recommend（具体品类：吃的/零食）
+- 例如：'帮我推荐笔记本' → specific_recommend（具体品类：笔记本）
+✅ **评论分析判断规则**：
+- 如果用户提到'评论'、'评分'、'口碑'、'评价'、'舆情'等词，并且有商品ID或提到具体商品，选择 analyze_sentiment
+- 例如：'分析商品305的评论' → analyze_sentiment
+- 例如：'看看这个商品的评分' → analyze_sentiment
+✅ **销售分析判断规则**：
+- 如果用户提到'销售'、'销量'、'报告'、'趋势'、'排行'等词，选择 analyze_sales
+- 例如：'生成销售报告' → analyze_sales
+- 例如：'查看销售趋势' → analyze_sales
+- 如果用户提到'订单'但没有明确说查询，优先选择 query_order
+- 如果用户只是闲聊或问一些与购物无关的问题，选择 chat
+- 如果用户的问题模糊不清，难以判断，选择 unknown
+
+【示例 - 仔细学习】
+用户：'给我推荐一些商品' → recommend_goods
+用户：'首页有什么用' → chat（询问信息，不是跳转）
+用户：'首页有什么功能' → chat（询问信息）
+用户：'去首页' → navigate（执行跳转）
+用户：'到首页看看' → navigate（执行跳转）
+用户：'我想买手机' → search_goods
+用户：'我的订单在哪' → chat（询问位置信息）
+用户：'查询我的订单' → query_order
+用户：'帮我下单' → quick_order
+用户：'你好' → chat
+用户：'今天天气怎么样' → chat
+用户：'这个商品怎么样' → chat（询问信息）
+用户：'看看这个商品' → search_goods（查看商品）
+用户：'推荐一些卫衣' → specific_recommend（具体品类推荐）
+用户：'推荐手机' → specific_recommend（具体品类推荐）
+用户：'推荐零食' → specific_recommend（具体品类推荐）
+用户：'分析商品305的评论' → analyze_sentiment（评论分析）
+用户：'生成商品305的销售报告' → analyze_sales（销售分析）
+用户：'查看销售趋势' → analyze_sales（销售分析）
+
+【用户消息】
+id 1202 舆情分析
+
+请只返回一个英文单词（search_goods、add_to_cart、batch_add_cart、query_order、navigate、logout、recommend_goods、specific_recommend、quick_order、track_order、analyze_orders、analyze_sentiment、analyze_sales、chat 或 unknown），不要返回任何其他内容。
+2026-04-25 10:38:44.538  INFO 57361 --- [nio-9191-exec-1] c.r.em.ai.service.LangChainAiService     : ChatLanguageModel 是否可用：true
+2026-04-25 10:38:44.538  INFO 57361 --- [nio-9191-exec-1] c.r.em.ai.service.LangChainAiService     : ChatLanguageModel 类型：OpenAiChatModel
+2026-04-25 10:38:44.538  INFO 57361 --- [nio-9191-exec-1] c.r.em.ai.service.LangChainAiService     : ========================================
+2026-04-25 10:38:44.538  INFO 57361 --- [nio-9191-exec-1] c.r.em.ai.service.LangChainAiService     : >>> 调用 DeepSeek API...
+2026-04-25 10:38:45.767  INFO 57361 --- [nio-9191-exec-1] c.r.em.ai.service.LangChainAiService     : <<< DeepSeek API 响应成功
+2026-04-25 10:38:45.769  INFO 57361 --- [nio-9191-exec-1] c.r.em.ai.service.LangChainAiService     : <<< 响应内容：analyze_sentiment...
+2026-04-25 10:38:45.769  INFO 57361 --- [nio-9191-exec-1] c.r.em.ai.service.LangChainAiService     : ========================================
+2026-04-25 10:38:45.769  INFO 57361 --- [nio-9191-exec-1] c.r.em.ai.service.LangChainAiService     : LangChainAiService 处理完成
+<<< DeepSeek API 响应成功
+DeepSeek 返回的意图识别结果：analyze_sentiment
+处理后的意图识别结果：analyze_sentiment
+意图识别结果有效，返回：analyze_sentiment
+识别出的用户意图：analyze_sentiment
+开始提取实体
+提取到的实体：{goodId=1202}
+开始执行业务操作（流式版本）：analyze_sentiment
+执行评论/销售分析操作
+2026-04-25 10:38:45.775  INFO 57361 --- [nio-9191-exec-1] c.r.em.ai.service.AiBusinessService      : 评论舆情分析，商品ID: 1202
+2026-04-25 10:38:45.868  INFO 57361 --- [nio-9191-exec-1] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-04-25 10:38:46.218  INFO 57361 --- [nio-9191-exec-1] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-04-25 10:38:46.429  INFO 57361 --- [nio-9191-exec-1] c.r.em.ai.service.AiBusinessService      : 获取到 50 条评论用于词云分析
+2026-04-25 10:38:46.430  INFO 57361 --- [nio-9191-exec-1] c.r.em.ai.service.AiBusinessService      : === 词云生成开始 ===
+2026-04-25 10:38:46.431  INFO 57361 --- [nio-9191-exec-1] c.r.em.ai.service.AiBusinessService      : 输入评论数量: 50
+2026-04-25 10:38:46.431  INFO 57361 --- [nio-9191-exec-1] c.r.em.ai.service.AiBusinessService      : 有效评论数量: 50, 空内容数量: 0
+2026-04-25 10:38:46.526  INFO 57361 --- [nio-9191-exec-1] c.r.em.ai.service.AiBusinessService      : 评论JSON字符串长度: 1617
+2026-04-25 10:38:46.526  INFO 57361 --- [nio-9191-exec-1] c.r.em.ai.service.AiBusinessService      : 评论JSON示例(前200字符): [{"content":"商品还可以，就是价格有点小贵。"},{"content":"用着还行，没有大问题，习惯性好评。"},{"content":"基本满意，和描述差不多，给个好评。"},{"content":"收到货很惊喜，比预期的还要好，强烈推荐！"},{"content":"非常好用，质量很棒！物流也很快，包装完好。"},{"content":"客服态度很好，解答耐心，商品质量也很好。"}...
+2026-04-25 10:38:46.526  INFO 57361 --- [nio-9191-exec-1] c.r.em.ai.service.AiBusinessService      : 检查脚本文件: /Users/a123/Downloads/项目/graduate_design/generate_wordcloud.py
+2026-04-25 10:38:46.526  INFO 57361 --- [nio-9191-exec-1] c.r.em.ai.service.AiBusinessService      : 脚本文件存在: true
+2026-04-25 10:38:46.526  INFO 57361 --- [nio-9191-exec-1] c.r.em.ai.service.AiBusinessService      : 脚本文件可读: true
+2026-04-25 10:38:46.526  INFO 57361 --- [nio-9191-exec-1] c.r.em.ai.service.AiBusinessService      : 开始执行Python词云脚本...
+2026-04-25 10:38:47.581  INFO 57361 --- [nio-9191-exec-1] c.r.em.ai.service.AiBusinessService      : Python脚本退出码: 0
+2026-04-25 10:38:47.582  INFO 57361 --- [nio-9191-exec-1] c.r.em.ai.service.AiBusinessService      : Python脚本输出总长度: 1629
+2026-04-25 10:38:47.583  INFO 57361 --- [nio-9191-exec-1] c.r.em.ai.service.AiBusinessService      : 提取的JSON长度: 1415
+2026-04-25 10:38:47.583  INFO 57361 --- [nio-9191-exec-1] c.r.em.ai.service.AiBusinessService      : 词云JSON数据(前300字符): [{"name": "质量", "value": 13}, {"name": "就是", "value": 9}, {"name": "有点", "value": 8}, {"name": "好评", "value": 8}, {"name": "问题", "value": 7}, {"name": "价格", "value": 6}, {"name": "收到", "value": 6}, {"name": "预期", "value": 6}, {"name": "客服", "value": 6}, {"name": "态度", "value": 6}, {"name": "性价比", "v...
+2026-04-25 10:38:47.592  INFO 57361 --- [nio-9191-exec-1] c.r.em.ai.service.AiBusinessService      : 解析到词云数据条数: 50
+2026-04-25 10:38:47.594  INFO 57361 --- [nio-9191-exec-1] c.r.em.ai.service.AiBusinessService      : === 词云生成完成，共 50 个词 ===
+2026-04-25 10:38:47.594  INFO 57361 --- [nio-9191-exec-1] c.r.em.ai.service.AiBusinessService      : 词云数据生成完成，共 50 个词
+2026-04-25 10:38:47.633  INFO 57361 --- [nio-9191-exec-1] c.r.em.ai.service.AiBusinessService      : 舆情分析结果 - 评分统计: 5, 热门标签: 0, 情感分布: {negative=16, neutral=24, positive=60}, 最新评论: 10, 词云数据: 50, 总评论数: 908
+发送分析结果 action
+=== 智能帮助模式完成 ===
+2026-04-25 10:38:48.292  INFO 57361 --- [nio-9191-exec-1] c.r.e.a.c.AiConversationController       : 更新对话消息，对话 ID: 18

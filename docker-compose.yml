@@ -1,0 +1,64 @@
+services:
+  # MySQL数据库
+  mysql:
+    image: mysql:5.7
+    container_name: mall-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: 123456
+      MYSQL_DATABASE: db_mall
+      MYSQL_CHARSET: utf8mb4
+      MYSQL_COLLATION: utf8mb4_unicode_ci
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./db_mall.sql:/docker-entrypoint-initdb.d/db_mall.sql
+    networks:
+      - mall-network
+    restart: always
+
+  # Redis缓存
+  redis:
+    image: redis:6
+    container_name: mall-redis
+    ports:
+      - "6379:6379"
+    networks:
+      - mall-network
+    restart: always
+
+  # 后端服务
+  backend:
+    image: maven:3.8.5-openjdk-8
+    container_name: mall-backend
+    working_dir: /app
+    volumes:
+      - ./ElectronicMallApi - idea:/app
+    ports:
+      - "9191:9191"
+    depends_on:
+      - mysql
+      - redis
+    networks:
+      - mall-network
+    command: mvn spring-boot:run
+    restart: always
+
+  # 前端服务（可选，因为前端已经在本地运行）
+  frontend:
+    image: node:14
+    container_name: mall-frontend
+    working_dir: /app
+    volumes:
+      - ./ElectronicMallVue:/app
+    ports:
+      - "9192:8080"
+    depends_on:
+      - backend
+    networks:
+      - mall-network
+    command: sh -c "npm install --registry=https://registry.npmmirror.com && npm run dev -- --host 0.0.0.0 --port 8080"
+    restart: always
+
+networks:
+  mall-network:
+    driver: bridge

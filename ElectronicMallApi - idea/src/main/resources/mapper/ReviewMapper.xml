@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.rabbiter.em.mapper.ReviewMapper">
+
+    <resultMap id="ReviewWithUserMap" type="com.rabbiter.em.entity.Review">
+        <id column="id" property="id"/>
+        <result column="user_id" property="userId"/>
+        <result column="good_id" property="goodId"/>
+        <result column="order_id" property="orderId"/>
+        <result column="rating" property="rating"/>
+        <result column="content" property="content"/>
+        <result column="images" property="images"/>
+        <result column="tags" property="tags"/>
+        <result column="reply_count" property="replyCount"/>
+        <result column="like_count" property="likeCount"/>
+        <result column="dislike_count" property="dislikeCount"/>
+        <result column="is_anonymous" property="isAnonymous"/>
+        <result column="status" property="status"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+        <!-- 关联用户信息 -->
+        <association property="user" javaType="com.rabbiter.em.entity.User">
+            <id column="u_id" property="id"/>
+            <result column="u_username" property="username"/>
+            <result column="u_nickname" property="nickname"/>
+            <result column="u_avatar" property="avatarUrl"/>
+        </association>
+    </resultMap>
+
+    <!-- 查询商品评论列表（带用户信息） -->
+    <select id="selectReviewListWithUser" resultMap="ReviewWithUserMap">
+        SELECT 
+            r.*,
+            u.id as u_id,
+            u.username as u_username,
+            u.nickname as u_nickname,
+            u.avatar_url as u_avatar
+        FROM review r
+        LEFT JOIN sys_user u ON r.user_id = u.id
+        WHERE r.good_id = #{goodId}
+          AND r.status = #{status}
+        ORDER BY r.create_time DESC, r.like_count DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <!-- 查询用户的评论列表 -->
+    <select id="selectUserReviewList" resultMap="ReviewWithUserMap">
+        SELECT 
+            r.*,
+            u.id as u_id,
+            u.username as u_username,
+            u.nickname as u_nickname,
+            u.avatar_url as u_avatar
+        FROM review r
+        LEFT JOIN sys_user u ON r.user_id = u.id
+        WHERE r.user_id = #{userId}
+          AND r.status = #{status}
+        ORDER BY r.create_time DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <!-- 统计商品评论数 -->
+    <select id="countByGoodId" resultType="java.lang.Integer">
+        SELECT COUNT(*) FROM review
+        WHERE good_id = #{goodId}
+          AND status = #{status}
+    </select>
+
+    <!-- 统计各星级评论数 -->
+    <select id="countRatingByGoodId" resultType="java.util.Map">
+        SELECT 
+            COUNT(*) as total,
+            SUM(CASE WHEN rating = 5 THEN 1 ELSE 0 END) as rating_5_count,
+            SUM(CASE WHEN rating = 4 THEN 1 ELSE 0 END) as rating_4_count,
+            SUM(CASE WHEN rating = 3 THEN 1 ELSE 0 END) as rating_3_count,
+            SUM(CASE WHEN rating = 2 THEN 1 ELSE 0 END) as rating_2_count,
+            SUM(CASE WHEN rating = 1 THEN 1 ELSE 0 END) as rating_1_count,
+            AVG(rating) as avg_rating
+        FROM review
+        WHERE good_id = #{goodId}
+          AND status = #{status}
+    </select>
+
+    <!-- 查询商品的第一条五星评论 -->
+    <select id="selectFirstFiveStarReview" resultType="com.rabbiter.em.entity.Review">
+        SELECT * FROM review
+        WHERE good_id = #{goodId}
+          AND rating = 5
+          AND status = 1
+        ORDER BY create_time DESC
+        LIMIT 1
+    </select>
+    
+    <!-- 查询最新评论（带用户信息） -->
+    <select id="selectLatestReviewsWithUser" resultMap="ReviewWithUserMap">
+        SELECT 
+            r.*,
+            u.id as u_id,
+            u.username as u_username,
+            u.nickname as u_nickname,
+            u.avatar_url as u_avatar
+        FROM review r
+        LEFT JOIN sys_user u ON r.user_id = u.id
+        WHERE r.good_id = #{goodId}
+          AND r.status = #{status}
+        ORDER BY r.create_time DESC
+        LIMIT #{limit}
+    </select>
+    
+    <!-- 查询商品的平均评分 -->
+    <select id="selectAvgRating" resultType="java.math.BigDecimal">
+        SELECT AVG(rating) FROM review
+        WHERE good_id = #{goodId}
+          AND status = 1
+    </select>
+
+    <!-- 查询热门评论（点赞数高的） -->
+    <select id="selectHotReviews" resultMap="ReviewWithUserMap">
+        SELECT 
+            r.*,
+            u.id as u_id,
+            u.username as u_username,
+            u.nickname as u_nickname,
+            u.avatar_url as u_avatar
+        FROM review r
+        LEFT JOIN sys_user u ON r.user_id = u.id
+        WHERE r.good_id = #{goodId}
+          AND r.status = #{status}
+        ORDER BY r.like_count DESC, r.create_time DESC
+        LIMIT #{limit}
+    </select>
+
+    <!-- 查询有图片的评论 -->
+    <select id="selectReviewsWithImages" resultMap="ReviewWithUserMap">
+        SELECT 
+            r.*,
+            u.id as u_id,
+            u.username as u_username,
+            u.nickname as u_nickname,
+            u.avatar_url as u_avatar
+        FROM review r
+        LEFT JOIN sys_user u ON r.user_id = u.id
+        WHERE r.good_id = #{goodId}
+          AND r.status = #{status}
+          AND r.images IS NOT NULL
+          AND r.images != ''
+        ORDER BY r.create_time DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <!-- 更新评论统计数据 -->
+    <update id="updateReviewStatistics">
+        UPDATE good g
+        LEFT JOIN (
+            SELECT 
+                good_id,
+                COUNT(*) as review_count,
+                AVG(rating) as good_rating,
+                SUM(CASE WHEN rating = 5 THEN 1 ELSE 0 END) as rating_5_count,
+                SUM(CASE WHEN rating = 4 THEN 1 ELSE 0 END) as rating_4_count,
+                SUM(CASE WHEN rating = 3 THEN 1 ELSE 0 END) as rating_3_count,
+                SUM(CASE WHEN rating = 2 THEN 1 ELSE 0 END) as rating_2_count,
+                SUM(CASE WHEN rating = 1 THEN 1 ELSE 0 END) as rating_1_count
+            FROM review
+            WHERE good_id = #{goodId}
+              AND status = 1
+            GROUP BY good_id
+        ) r ON g.id = r.good_id
+        SET 
+            g.review_count = IFNULL(r.review_count, 0),
+            g.good_rating = IFNULL(r.good_rating, 5.00),
+            g.rating_5_count = IFNULL(r.rating_5_count, 0),
+            g.rating_4_count = IFNULL(r.rating_4_count, 0),
+            g.rating_3_count = IFNULL(r.rating_3_count, 0),
+            g.rating_2_count = IFNULL(r.rating_2_count, 0),
+            g.rating_1_count = IFNULL(r.rating_1_count, 0)
+        WHERE g.id = #{goodId}
+    </update>
+
+    <!-- 批量插入评论 -->
+    <insert id="insertBatch">
+        INSERT INTO review (user_id, good_id, order_id, rating, content, images, tags, status)
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (#{item.userId}, #{item.goodId}, #{item.orderId}, #{item.rating}, #{item.content}, 
+             #{item.images}, #{item.tags}, #{item.status})
+        </foreach>
+    </insert>
+
+    <!-- 查询评分分布 -->
+    <select id="selectRatingDistribution" resultType="java.util.Map">
+        SELECT 
+            rating,
+            COUNT(*) as count,
+            ROUND(COUNT(*) * 100.0 / (SELECT COUNT(*) FROM review WHERE status = 1 
+                <if test="goodId != null">AND good_id = #{goodId}</if>
+            ), 2) as percentage
+        FROM review
+        WHERE status = 1
+        <if test="goodId != null">AND good_id = #{goodId}</if>
+        GROUP BY rating
+        ORDER BY rating DESC
+    </select>
+
+</mapper>

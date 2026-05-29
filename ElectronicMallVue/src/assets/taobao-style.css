@@ -1,0 +1,324 @@
+/* 淘宝风格全局样式 */
+
+/* 淘宝主题色 */
+:root {
+  --taobao-orange: #ff5000;
+  --taobao-red: #ff0036;
+  --taobao-yellow: #ff9000;
+  --taobao-bg: #f4f4f4;
+  --taobao-white: #ffffff;
+  --taobao-text: #333333;
+  --taobao-text-light: #999999;
+  --taobao-border: #e5e5e5;
+  --taobao-price-red: #ff5000;
+  --taobao-gradient: linear-gradient(90deg, #ff9000 0%, #ff5000 100%);
+}
+
+/* 全局重置 */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  background-color: var(--taobao-bg);
+  color: var(--taobao-text);
+  line-height: 1.6;
+}
+
+/* 淘宝风格容器 */
+.taobao-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 16px;
+}
+
+/* 淘宝风格卡片 */
+.taobao-card {
+  background: var(--taobao-white);
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.taobao-card:hover {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+  transform: translateY(-2px);
+}
+
+/* 淘宝风格按钮 */
+.taobao-btn {
+  background: var(--taobao-gradient);
+  color: white;
+  border: none;
+  border-radius: 20px;
+  padding: 10px 24px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.taobao-btn:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(255, 80, 0, 0.3);
+}
+
+.taobao-btn:active {
+  transform: translateY(0);
+}
+
+/* 淘宝风格价格显示 */
+.taobao-price {
+  color: var(--taobao-price-red);
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.taobao-price::before {
+  content: "¥";
+  font-size: 14px;
+  margin-right: 2px;
+}
+
+.taobao-price-original {
+  color: var(--taobao-text-light);
+  font-size: 12px;
+  text-decoration: line-through;
+}
+
+/* 淘宝风格标签 */
+.taobao-tag {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  margin-right: 6px;
+}
+
+.taobao-tag-hot {
+  background: linear-gradient(90deg, #ff9000 0%, #ff5000 100%);
+  color: white;
+}
+
+.taobao-tag-new {
+  background: #ff0036;
+  color: white;
+}
+
+.taobao-tag-sale {
+  background: #ff5000;
+  color: white;
+}
+
+/* 淘宝风格网格布局 */
+.taobao-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 16px;
+  padding: 16px 0;
+}
+
+/* 淘宝风格商品卡片 */
+.taobao-product-card {
+  background: var(--taobao-white);
+  border-radius: 12px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.taobao-product-card:hover {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+  transform: translateY(-4px);
+}
+
+.taobao-product-card .product-image {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  background: #f5f5f5;
+}
+
+.taobao-product-card .product-info {
+  padding: 12px;
+}
+
+.taobao-product-card .product-title {
+  font-size: 14px;
+  color: var(--taobao-text);
+  line-height: 1.4;
+  height: 40px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  margin-bottom: 8px;
+}
+
+.taobao-product-card .product-price {
+  color: var(--taobao-price-red);
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.taobao-product-card .product-price::before {
+  content: "¥";
+  font-size: 12px;
+  margin-right: 2px;
+}
+
+.taobao-product-card .product-sales {
+  font-size: 12px;
+  color: var(--taobao-text-light);
+  margin-top: 4px;
+}
+
+/* 淘宝风格分割线 */
+.taobao-divider {
+  height: 1px;
+  background: var(--taobao-border);
+  margin: 16px 0;
+}
+
+/* 淘宝风格标题 */
+.taobao-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--taobao-text);
+  text-align: center;
+  margin: 24px 0 16px;
+}
+
+.taobao-title::after {
+  content: "";
+  display: block;
+  width: 60px;
+  height: 3px;
+  background: var(--taobao-gradient);
+  margin: 8px auto 0;
+  border-radius: 2px;
+}
+
+/* 淘宝风格加载动画 */
+.taobao-loading {
+  text-align: center;
+  padding: 40px;
+  color: var(--taobao-text-light);
+}
+
+.taobao-loading::before {
+  content: "";
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+  border: 3px solid var(--taobao-border);
+  border-top-color: var(--taobao-orange);
+  border-radius: 50%;
+  animation: taobao-spin 0.8s linear infinite;
+  margin-right: 8px;
+  vertical-align: middle;
+}
+
+@keyframes taobao-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* 淘宝风格空状态 */
+.taobao-empty {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--taobao-text-light);
+}
+
+.taobao-empty::before {
+  content: "📦";
+  display: block;
+  font-size: 64px;
+  margin-bottom: 16px;
+}
+
+/* 滚动条美化 */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #a1a1a1;
+}
+
+/* 返回顶部按钮 */
+.back-to-top {
+  position: fixed;
+  bottom: 80px;
+  right: 20px;
+  width: 48px;
+  height: 48px;
+  background: var(--taobao-white);
+  border-radius: 50%;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  z-index: 999;
+}
+
+.back-to-top:hover {
+  background: var(--taobao-orange);
+  color: white;
+  transform: translateY(-4px);
+}
+
+/* 底部导航栏 */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--taobao-white);
+  box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.08);
+  display: flex;
+  justify-content: space-around;
+  padding: 8px 0;
+  z-index: 1000;
+}
+
+.bottom-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-decoration: none;
+  color: var(--taobao-text-light);
+  font-size: 12px;
+  transition: all 0.3s ease;
+}
+
+.bottom-nav-item:hover,
+.bottom-nav-item.active {
+  color: var(--taobao-orange);
+}
+
+.bottom-nav-item .icon {
+  font-size: 24px;
+  margin-bottom: 4px;
+}

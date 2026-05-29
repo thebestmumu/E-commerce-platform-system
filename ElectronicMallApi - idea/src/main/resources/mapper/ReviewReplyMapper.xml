@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.rabbiter.em.mapper.ReviewReplyMapper">
+
+    <resultMap id="ReviewReplyWithUserMap" type="com.rabbiter.em.entity.ReviewReply">
+        <id column="id" property="id"/>
+        <result column="review_id" property="reviewId"/>
+        <result column="user_id" property="userId"/>
+        <result column="parent_id" property="parentId"/>
+        <result column="to_user_id" property="toUserId"/>
+        <result column="content" property="content"/>
+        <result column="like_count" property="likeCount"/>
+        <result column="status" property="status"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+        <!-- 关联用户信息 -->
+        <association property="user" javaType="com.rabbiter.em.entity.User">
+            <id column="u_id" property="id"/>
+            <result column="u_username" property="username"/>
+            <result column="u_nickname" property="nickname"/>
+            <result column="u_avatar" property="avatarUrl"/>
+        </association>
+        <!-- 关联被回复用户信息 -->
+        <association property="toUser" javaType="com.rabbiter.em.entity.User">
+            <id column="tu_id" property="id"/>
+            <result column="tu_username" property="username"/>
+            <result column="tu_nickname" property="nickname"/>
+            <result column="tu_avatar" property="avatarUrl"/>
+        </association>
+    </resultMap>
+
+    <!-- 查询评论的回复列表（带用户信息） -->
+    <select id="selectReplyListByReviewId" resultMap="ReviewReplyWithUserMap">
+        SELECT 
+            rr.*,
+            u.id as u_id,
+            u.username as u_username,
+            u.nickname as u_nickname,
+            u.avatar_url as u_avatar,
+            tu.id as tu_id,
+            tu.username as tu_username,
+            tu.nickname as tu_nickname,
+            tu.avatar_url as tu_avatar
+        FROM review_reply rr
+        LEFT JOIN sys_user u ON rr.user_id = u.id
+        LEFT JOIN sys_user tu ON rr.to_user_id = tu.id
+        WHERE rr.review_id = #{reviewId}
+          AND rr.status = #{status}
+          AND rr.parent_id IS NULL
+        ORDER BY rr.create_time ASC
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <!-- 查询楼中楼回复（父子结构） -->
+    <select id="selectNestedReplies" resultMap="ReviewReplyWithUserMap">
+        SELECT 
+            rr.*,
+            u.id as u_id,
+            u.username as u_username,
+            u.nickname as u_nickname,
+            u.avatar_url as u_avatar,
+            tu.id as tu_id,
+            tu.username as tu_username,
+            tu.nickname as tu_nickname,
+            tu.avatar_url as tu_avatar
+        FROM review_reply rr
+        LEFT JOIN sys_user u ON rr.user_id = u.id
+        LEFT JOIN sys_user tu ON rr.to_user_id = tu.id
+        WHERE rr.review_id = #{reviewId}
+          AND rr.parent_id = #{parentId}
+          AND rr.status = #{status}
+        ORDER BY rr.create_time ASC
+    </select>
+
+    <!-- 统计评论回复数 -->
+    <select id="countByReviewId" resultType="java.lang.Integer">
+        SELECT COUNT(*) FROM review_reply
+        WHERE review_id = #{reviewId}
+          AND status = #{status}
+    </select>
+
+    <!-- 批量插入回复 -->
+    <insert id="insertBatch">
+        INSERT INTO review_reply (review_id, user_id, parent_id, to_user_id, content, status)
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (#{item.reviewId}, #{item.userId}, #{item.parentId}, #{item.toUserId}, 
+             #{item.content}, #{item.status})
+        </foreach>
+    </insert>
+
+</mapper>

@@ -1,0 +1,99 @@
+server:
+  port: 9191
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/db_mall?serverTimezone=GMT%2b8&userSSL=false&allowPublicKeyRetrieval=true
+    username: root
+    password: 
+  servlet:
+    multipart:
+      max-file-size: 30MB
+  redis:
+    database: 0
+    host: 127.0.0.1
+    port: 6379
+    lettuce:
+      pool:
+        min-idle: 0
+        max-active: 8
+        max-idle: 8
+        max-wait: -1ms
+    connect-timeout: 30000ms
+
+mybatis:
+  mapper-locations: classpath:mapper/*.xml
+  configuration:
+    map-underscore-to-camel-case: true
+
+# AI 助手配置
+ai:
+  # MCP 工具调用开关（true=使用LLM工具调用，false=使用原有规则引擎）
+  mcp:
+    enabled: true
+    # 百度优选MCP配置 - 真实商品购买
+    baidu-youxuan:
+      enabled: true
+      api-key: 77316c705969364367505576446750754627e4b747703e15223aafb9e444ace4
+    # 飞猪MCP配置 - 机票/酒店预订
+    fliggy:
+      enabled: false
+      api-key: your_fliggy_api_key_here
+      app-key: your_fliggy_app_key_here
+  baidu:
+    # 百度文心一言 API 密钥（备用方案）
+    api-key: bce-v3/ALTAK-49DVuMofFEeEFKd6VLfWV/9ead2dda73b13a6eaac60b5d7d76c4aac984273a
+    # 百度文心一言 Secret Key
+    secret-key: your_secret_key_here
+  # AI 助手配置
+  assistant:
+    # 是否启用 AI 助手
+    enabled: true
+    # 对话历史最大长度
+    max-history-length: 10
+    # 响应超时时间（毫秒）
+    timeout: 30000
+    # 默认使用 LangChain4j，失败时降级到百度文心一言
+    default-provider: langchain4j
+
+# LangChain4j 配置（使用 DeepSeek - 主方案）
+langchain4j:
+  # 启用状态
+  enabled: true
+  
+  # OpenAI 兼容配置（DeepSeek 完全兼容 OpenAI）
+  open-ai:
+    base-url: https://api.deepseek.com/v1
+    api-key: sk-3623424852fa4e37a8b988ea3271b238
+    chat-model:
+      model-name: deepseek-chat
+      temperature: 0.7
+      max-tokens: 2000
+      timeout: 30s
+
+# 支付宝沙盒支付配置
+alipay:
+  # 应用ID（使用支付宝沙盒环境）
+  app-id: 2021000147625520
+  # 应用私钥（RSA2格式）
+  private-key: MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCAo7n/X65Lcg38mGxO5NkXbAonYO+YlGAo9KWMqQCrSadg6MpKH4UtHjamLij2CeKsHNkEalLO5HL9AfMk+V6zGMsgV3jlKKHGHLmJm4i7eZwWZVOf7Ivgw7rYXo+04ZFkS5qqnItF2Yad/dfmg4DcHTzYLkwRyWbk8mUzUeCJY4a45mb0Imlog02iG6r+96MojwyAKz/nYpYaaxXzhRpiPyq8ouAE5h/9G6CSNaYH0LDvURHkGk48D6BEnBg8XiHeNzzjKN/R9pivr+yGo22Fb3qFE31UOkdc09Zm+2fcZLHRNoDsrY74d2L7PCwSW5SR/QYtwOW/QAT7fXs1yoMhAgMBAAECggEAdkgVaf8sYCrLOYtda115T9QDshmrtPwZPw9UeXWcK+NZh/4EowtAhS/WyA6Bk1mblu4fjbPF2H6uTH1SeJjivoL5ow9LFkq6FVOsNh9RJjC3mNAqiE4Uf+L5FqI8OPF/olzyJhYy6VMOOI+DyWz5O2uW2qAXSfOKLNHEw99xOmF+zLFET2Z8A6Ge8EPhl1IJ/+XwBroIqxDX46GzL54RpWQhafi3qGdJn0iKava1aoEXs3yyqNq5y2IX0DYN8CXWItCNXu8vl7WrwNEvR+WwOCIHfDPU6QPPB0aiVT4nCPVoc7IoJPJr3RI7xhachM9kloZBocCWay7jGEGyvYKkAQKBgQDBGzN2FQ4zNmuNbm2SsaBZ8f8AgzzSqj0bOo3LKF9m2A/Ojq+8mdiOH9yueZzT8Klf7ytdTWRo1jkSmac4ZjwFVqVeZwQsyAQC6+PXows9hxe1RXsnesAU9BDtcbKW8GTKIlajtNffkxFmYLGfV4kM9KGg9RcetX8l02S01zDOUQKBgQCqiW0PsaULuJpHw6Zn/F7pBjwaASMKKjFYdik41+L/kaMsMwEvRkjZkFw3qutNn+cf1le9o6/0Sq8H8JpgmaxKAAn5m6Vk0xsQkBm0kWUj0ZuOrKAP/NHdIAYttmQjxESea+TTp6NQeaUpyWozbxFdMSIg0wkS3KpUSxCoDq0j0QKBgFU5qBCpYkb/8Z/N6NYhRt/ridu0EBf5wlZOFV5gRxqgqPlEyBK443Z2YXMvgSOYx2frqnvXOEV8plurLL4bgMnqX7m2RYVuETco3LnC36ccBD6gl6Xo6vVUclQZJfSvzAvZ89r0aYHm6nsAmeP1QitRnDPpd3a6K4+KKJwXjRbBAoGBAJtLyiUggEvML7JqWH8ZMtTA+Lo1jtMS2RzVfXRmJDDXTuBREiMavfxhmZiX7O8jTjWP2xa2mOS9neZ9FBgj2OEKaAsF0feexmau0rm8LX4QwreKO7hTYkkbgITgMxDfCh254wdbAT2niOAkqrFr00QqGgoKI5kpmXJpaSGhO8oBAoGAJeE7joWVtzDGubdg8U7B+5I443HMTGYsqMMkz66Ji9utPu8+9rxKQEfluWQbv6LMuoO1xyhFbkdNKuQ09EBezcz2sHxoVsVsxz6yUByuG8tqwXU938nNUEiturNfxZx0pxqbTD9//1BiJOGNMa2MgCtlmgTXEIA/D2xvBftVQ6A=
+  # 支付宝公钥
+  alipay-public-key: MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAv0/5DZupQO9Rou22kT2YravJWvqfhsF9Da4aJgN4wYWX8H33mQBk2AFY2BEP5XZ/f17q27zzByAIyLU+ywnawP/cmqR+/c5qmEgVM0ZaECYEE9XKYc0wBmRAO/LsgSIEXKJTLyiw+JO0RhIOO5CZ1DhN7N4hbbVuOHMTXqPKHR8j2EuFQJ9usV3pJDvnHJS/Kw3dumXxrky/wEDF2EYSzDjOlD1w3OdwQbi3emKpSXMH5oARb7t+sPmfWXAVfIUy1Unhol/bQ8DwiCydf4SCGcwxkYXEwDySf+P/5r1R7mrBHUX6IYumX7BVmywUweC+wwKcoXYk5zJM/AyhG/G+RwIDAQAB
+  # 服务器异步通知地址
+  notify-url: http://localhost:9191/api/alipay/notify
+  # 页面跳转同步通知地址
+  return-url: http://localhost:9197/pay-success
+  # 网关地址（沙盒环境）
+  gateway-url: https://openapi-sandbox.dl.alipaydev.com/gateway.do
+  # 签名类型
+  sign-type: RSA2
+  # 字符编码
+  charset: UTF-8
+  # 返回格式
+  format: json
+
+# 百度地图API配置
+baidu:
+  map:
+    # 百度地图AK（用于前端地图显示）
+    ak: your_baidu_map_ak_here

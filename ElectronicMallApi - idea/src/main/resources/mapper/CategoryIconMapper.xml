@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.rabbiter.em.mapper.CategoryIconMapper">
+
+    <resultMap id="CategoryIconMap" type="com.rabbiter.em.entity.CategoryIcon">
+        <id column="id" property="id"/>
+        <result column="category_name" property="categoryName"/>
+        <result column="icon_url" property="iconUrl"/>
+        <result column="icon_emoji" property="iconEmoji"/>
+        <result column="bg_color" property="bgColor"/>
+        <result column="sort_order" property="sortOrder"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+    </resultMap>
+
+    <!-- 根据分类名称查询图标 -->
+    <select id="selectByCategoryName" resultMap="CategoryIconMap">
+        SELECT * FROM category_icon
+        WHERE category_name = #{categoryName}
+        ORDER BY sort_order ASC
+        LIMIT 1
+    </select>
+
+    <!-- 根据关键词模糊匹配图标 -->
+    <select id="selectByKeyword" resultMap="CategoryIconMap">
+        SELECT * FROM category_icon
+        WHERE #{keyword} LIKE CONCAT('%', category_name, '%')
+        ORDER BY sort_order ASC
+        LIMIT 1
+    </select>
+
+</mapper>

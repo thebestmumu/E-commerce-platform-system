@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.rabbiter.em.mapper.OrderMapper">
+    <resultMap id="goodMap" type="Map">
+        <result property="goodId" column="good_id"></result>
+        <result property="goodName" column="good_name"></result>
+        <result property="count" column="count"></result>
+        <result property="price" column="price"></result>
+        <result property="discount" column="discount"></result>
+        <result property="standard" column="standard"></result>
+        <result property="img" column="imgs"></result>
+    </resultMap>
+    <select id="selectByUserId" parameterType="int" resultType="java.util.HashMap">
+        SELECT o.id,
+               o.order_no as orderNo,
+               o.total_price as totalPrice,
+               o.user_id as userId,
+               o.link_user as linkUser,
+               o.link_phone as linkPhone,
+               o.link_address as linkAddress,
+               o.state as status,
+               o.create_time as createTime,
+               o.delivery_address as deliveryAddress,
+               o.express_company as expressCompany,
+               o.express_no as expressNo,
+               og.good_id as goodId,
+               good.`name` as goodName,
+               og.count,
+               og.standard,
+               good.imgs,
+               IFNULL(gs.price, (SELECT MIN(price) FROM good_standard WHERE good_id = og.good_id)) * IFNULL(good.discount, 1) as price,
+               good.discount,
+               good.delivery_address as goodDeliveryAddress
+        FROM t_order o
+        LEFT JOIN order_goods og ON o.id = og.order_id
+        LEFT JOIN good ON og.good_id = good.id
+        LEFT JOIN good_standard gs ON gs.good_id = og.good_id AND gs.`value` = og.standard
+        WHERE o.user_id = #{userId}
+        ORDER BY o.create_time DESC
+    </select>
+    <select id="selectByOrderNo" parameterType="String" resultType="java.util.HashMap">
+        SELECT o.id,
+               o.order_no as orderNo,
+               o.total_price as totalPrice,
+               o.user_id as userId,
+               o.link_user as linkUser,
+               o.link_phone as linkPhone,
+               o.link_address as linkAddress,
+               o.state as status,
+               o.create_time as createTime,
+               o.delivery_address as deliveryAddress,
+               o.express_company as expressCompany,
+               o.express_no as expressNo,
+               og.good_id as goodId,
+               good.`name` as goodName,
+               og.count,
+               og.standard,
+               good.imgs,
+               IFNULL(gs.price, (SELECT MIN(price) FROM good_standard WHERE good_id = og.good_id)) * IFNULL(good.discount, 1) as price,
+               good.discount,
+               good.delivery_address as goodDeliveryAddress
+        FROM t_order o
+        LEFT JOIN order_goods og ON o.id = og.order_id
+        LEFT JOIN good ON og.good_id = good.id
+        LEFT JOIN good_standard gs ON gs.good_id = og.good_id AND gs.`value` = og.standard
+        WHERE o.order_no = #{orderNo}
+    </select>
+</mapper>

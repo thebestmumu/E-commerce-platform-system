@@ -1,0 +1,47 @@
+# Maven build output
+**/target/
+
+# Node.js
+**/node_modules/
+**/dist/
+**/.npm/
+
+# IDE
+**/.idea/
+**/*.iml
+**/.vscode/
+
+# OS files
+**/.DS_Store
+**/Thumbs.db
+
+# Logs
+**/*.log
+
+# Environment files
+**/.env
+**/.env.local
+
+# 论文目录
+论文/
+
+# AI辅助临时目录
+.claude/
+
+# 根目录下的临时文档、脚本（非项目源码）
+/*.md
+/*.sql
+/*.py
+/*.html
+
+# 私钥文件 - 禁止提交
+*.pem
+*.key
+*.p8
+*.pub
+
+# 临时文件
+~/
+～/
+test_api.sh
+启用 LangChain4j.sh
