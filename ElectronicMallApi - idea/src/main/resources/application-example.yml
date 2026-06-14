@@ -1,0 +1,126 @@
+# =====================================================
+# 智能电子商城 - 配置文件模板
+# =====================================================
+# 使用说明：
+# 1. 复制此文件为 application.yml
+# 2. 将所有 YOUR_XXX_HERE 替换为真实配置
+# 3. 不要将真实的 application.yml 提交到 Git！
+# =====================================================
+
+server:
+  port: 9191
+  servlet:
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
+
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/db_mall?serverTimezone=GMT%2b8&userSSL=false&allowPublicKeyRetrieval=true
+    username: root
+    password: YOUR_DATABASE_PASSWORD_HERE
+  servlet:
+    multipart:
+      max-file-size: 30MB
+  redis:
+    database: 0
+    host: 127.0.0.1
+    port: 6379
+    password: YOUR_REDIS_PASSWORD_HERE
+    lettuce:
+      pool:
+        min-idle: 0
+        max-active: 8
+        max-idle: 8
+        max-wait: -1ms
+    connect-timeout: 30000ms
+
+mybatis:
+  mapper-locations: classpath:mapper/*.xml
+  configuration:
+    map-underscore-to-camel-case: true
+
+# AI 助手配置
+ai:
+  mcp:
+    enabled: true
+    baidu-youxuan:
+      enabled: true
+      api-key: YOUR_BAIDU_YOUXUAN_API_KEY_HERE
+    fliggy:
+      enabled: false
+      api-key: YOUR_FLIGGY_API_KEY_HERE
+      app-key: YOUR_FLIGGY_APP_KEY_HERE
+  assistant:
+    enabled: true
+    max-history-length: 10
+    timeout: 30000
+    default-provider: langchain4j
+  rag:
+    vector-store: memory
+    chroma:
+      url: http://localhost:8000
+    pinecone:
+      api-key: ${PINECONE_API_KEY:}
+      environment: ${PINECONE_ENVIRONMENT:}
+      index-name: ${PINECONE_INDEX_NAME:}
+    max-results: 3
+    similarity-threshold: 0.6
+  react:
+    max-rounds: 8
+    streaming: true
+  langfuse:
+    enabled: false
+    public-key: ${LANGFUSE_PUBLIC_KEY:}
+    secret-key: ${LANGFUSE_SECRET_KEY:}
+    host: ${LANGFUSE_HOST:https://us.cloud.langfuse.com}
+
+# LangChain4j 配置（DeepSeek）
+langchain4j:
+  enabled: true
+  open-ai:
+    base-url: https://api.deepseek.com/v1
+    api-key: ${DEEPSEEK_API_KEY:YOUR_DEEPSEEK_API_KEY_HERE}
+    chat-model:
+      model-name: deepseek-chat
+      temperature: 0.7
+      max-tokens: 2000
+      timeout: 30s
+
+# 百度文心一言配置（降级备用）
+qianfan:
+  enabled: false
+  api-key: ${QIANFAN_API_KEY:YOUR_QIANFAN_API_KEY_HERE}
+  secret-key: ${QIANFAN_SECRET_KEY:}
+  chat-model:
+    model-name: ernie-bot-4
+    temperature: 0.7
+    max-tokens: 2000
+
+# 多模型降级策略
+model-degradation:
+  enabled: true
+  primary: deepseek
+  fallback: qianfan
+  timeout-ms: 10000
+  failure-threshold: 2
+  cooldown-ms: 300000
+
+# 支付宝沙盒支付配置
+alipay:
+  app-id: YOUR_ALIPAY_APP_ID_HERE
+  private-key: YOUR_ALIPAY_PRIVATE_KEY_HERE
+  alipay-public-key: YOUR_ALIPAY_PUBLIC_KEY_HERE
+  notify-url: http://localhost:9191/api/alipay/notify
+  return-url: http://localhost:9197/pay-success
+  gateway-url: https://openapi-sandbox.dl.alipaydev.com/gateway.do
+  sign-type: RSA2
+  charset: UTF-8
+  format: json
+
+# 百度地图 API 配置
+baidu:
+  map:
+    ak: YOUR_BAIDU_MAP_AK_HERE

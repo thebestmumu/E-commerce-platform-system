@@ -1,5 +1,10 @@
 server:
   port: 9191
+  servlet:
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
 spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -34,17 +39,12 @@ ai:
     # 百度优选MCP配置 - 真实商品购买
     baidu-youxuan:
       enabled: true
-      api-key: 77316c705969364367505576446750754627e4b747703e15223aafb9e444ace4
+      api-key: ${BAIDU_YOUXUAN_API_KEY:your_baidu_youxuan_api_key_here}
     # 飞猪MCP配置 - 机票/酒店预订
     fliggy:
       enabled: false
       api-key: your_fliggy_api_key_here
       app-key: your_fliggy_app_key_here
-  baidu:
-    # 百度文心一言 API 密钥（备用方案）
-    api-key: bce-v3/ALTAK-49DVuMofFEeEFKd6VLfWV/9ead2dda73b13a6eaac60b5d7d76c4aac984273a
-    # 百度文心一言 Secret Key
-    secret-key: your_secret_key_here
   # AI 助手配置
   assistant:
     # 是否启用 AI 助手
@@ -55,6 +55,38 @@ ai:
     timeout: 30000
     # 默认使用 LangChain4j，失败时降级到百度文心一言
     default-provider: langchain4j
+  # RAG 知识库配置
+  rag:
+    # 向量存储类型: memory（内存,默认）, chroma, pinecone
+    vector-store: memory
+    # Chroma 配置（开发环境）
+    chroma:
+      url: http://localhost:8000
+    # Pinecone 配置（生产环境）
+    pinecone:
+      api-key: ${PINECONE_API_KEY:}
+      environment: ${PINECONE_ENVIRONMENT:}
+      index-name: ${PINECONE_INDEX_NAME:}
+    # 知识库最大返回结果数
+    max-results: 3
+    # 知识库相似度阈值（0-1）
+    similarity-threshold: 0.6
+  # ReAct Agent 配置
+  react:
+    # 最大推理轮数
+    max-rounds: 8
+    # 是否启用流式输出
+    streaming: true
+  # Langfuse 追踪配置（开源版 LangSmith，支持自托管）
+  langfuse:
+    # 是否启用 Langfuse 追踪
+    enabled: true
+    # Langfuse Public Key
+    public-key: ${LANGFUSE_PUBLIC_KEY:your_langfuse_public_key_here}
+    # Langfuse Secret Key
+    secret-key: ${LANGFUSE_SECRET_KEY:your_langfuse_secret_key_here}
+    # Langfuse 服务地址（US 区域用 https://us.cloud.langfuse.com，EU 区域用 https://cloud.langfuse.com）
+    host: ${LANGFUSE_HOST:https://us.cloud.langfuse.com}
 
 # LangChain4j 配置（使用 DeepSeek - 主方案）
 langchain4j:
@@ -64,12 +96,41 @@ langchain4j:
   # OpenAI 兼容配置（DeepSeek 完全兼容 OpenAI）
   open-ai:
     base-url: https://api.deepseek.com/v1
-    api-key: sk-3623424852fa4e37a8b988ea3271b238
+    api-key: ${DEEPSEEK_API_KEY:your_deepseek_api_key_here}
     chat-model:
       model-name: deepseek-chat
       temperature: 0.7
       max-tokens: 2000
       timeout: 30s
+
+# 百度文心一言配置（降级备用方案）
+qianfan:
+  # 启用状态
+  enabled: false  # 暂时禁用，因为当前 API Key 格式需要 Secret Key 配合
+  # API Key（从环境变量读取，如果没有配置则使用默认值）
+  api-key: ${QIANFAN_API_KEY:your_qianfan_api_key_here}
+  # Secret Key（可选，如果为空则使用 API Key 方式认证）
+  secret-key: ${QIANFAN_SECRET_KEY:}
+  # 模型名称
+  chat-model:
+    model-name: ernie-bot-4
+    temperature: 0.7
+    max-tokens: 2000
+
+# 多模型降级策略配置
+  model-degradation:
+    # 是否启用降级策略
+    enabled: true
+    # 主模型提供商
+    primary: deepseek
+    # 备用模型提供商
+    fallback: qianfan
+    # 超时时间（毫秒）
+    timeout-ms: 10000
+    # 失败阈值（连续失败次数触发降级）
+    failure-threshold: 2
+    # 降级冷却时间（毫秒）
+    cooldown-ms: 300000
 
 # 支付宝沙盒支付配置
 alipay:

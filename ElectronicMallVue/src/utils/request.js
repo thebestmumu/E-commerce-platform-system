@@ -9,13 +9,38 @@ const request = axios.create({
 
 // request 拦截器
 // 可以自请求发送前对请求做一些处理
-// 比如统一加token，对请求参数统一加密
+// 比如统一加 token，对请求参数统一加密
 request.interceptors.request.use(config => {
     config.headers['Content-Type'] = 'application/json;charset=utf-8';
-    let user = JSON.parse(localStorage.getItem("user"))
-    if(user){
-         config.headers['token'] = user.token;  // 设置token
+    
+    // 优先检查客服登录信息
+    const serviceUserStr = localStorage.getItem("serviceUser")
+    if(serviceUserStr){
+        try {
+            const serviceUser = JSON.parse(serviceUserStr)
+            if(serviceUser && serviceUser.token){
+                config.headers['token'] = serviceUser.token;  // 设置客服 token
+                config.headers['serviceId'] = serviceUser.userId;  // 设置 serviceId
+            }
+        } catch(e) {
+            console.error('解析客服信息失败:', e)
+        }
+    } else {
+        // 否则检查普通用户登录信息
+        const userStr = localStorage.getItem("user")
+        if(userStr){
+            try {
+                const user = JSON.parse(userStr)
+                if(user && user.token){
+                    config.headers['token'] = user.token;  // 设置用户 token
+                    config.headers['userId'] = user.id;    // 设置 userId
+                }
+            } catch(e) {
+                console.error('解析用户信息失败:', e)
+            }
+        }
     }
+    
     return config
 }, error => {
     return Promise.reject(error)
@@ -35,14 +60,25 @@ request.interceptors.response.use(
         if (typeof res === 'string') {
             res = res ? JSON.parse(res) : res
         }
-        // 发生错误，如token失效，则返回登录
-        if(res.code==='402'){
-            ElementUI.MessageBox({
-                title: '错误',
-                message: res.msg
-            }).then(() =>{
-                router.push('/login')
-            } )
+        // 发生错误，如 token 失效，则返回登录
+        if(res.code === '401' || res.code === '402'){
+            // 检查是否是客服账号
+            const serviceUser = localStorage.getItem('serviceUser')
+            if(serviceUser){
+                ElementUI.MessageBox({
+                    title: '错误',
+                    message: res.msg
+                }).then(() =>{
+                    router.push('/service-login')
+                })
+            } else {
+                ElementUI.MessageBox({
+                    title: '错误',
+                    message: res.msg
+                }).then(() =>{
+                    router.push('/login')
+                })
+            }
         }
         return res;
     },

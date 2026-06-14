@@ -15,7 +15,17 @@ public interface OrderMapper extends BaseMapper<Order> {
     @Update("update t_order set state = '已支付' where order_no = #{orderNo}")
     void payOrder(String orderNo);
 
-    @Select("SELECT * FROM t_order WHERE user_id = #{userId} ORDER BY create_time DESC")
+    @Select("SELECT o.id, o.order_no as orderNo, o.total_price as totalPrice, o.user_id as userId, " +
+            "o.link_user as linkUser, o.link_phone as linkPhone, o.link_address as linkAddress, " +
+            "o.state, o.create_time as createTime, o.delivery_address as deliveryAddress, " +
+            "o.express_company as expressCompany, o.express_no as expressNo, " +
+            "og.good_id as goodId, good.name as goodName, og.count, og.standard, good.imgs, " +
+            "gs.price as goodPrice, good.discount " +
+            "FROM t_order o " +
+            "LEFT JOIN order_goods og ON o.id = og.order_id " +
+            "LEFT JOIN good ON og.good_id = good.id " +
+            "LEFT JOIN good_standard gs ON gs.good_id = og.good_id AND gs.value = og.standard " +
+            "WHERE o.user_id = #{userId} ORDER BY o.create_time DESC")
     List<Map<String, Object>> selectByUserId(int userId);
 
     @Update("update t_order set state = '已收货' where order_no = #{orderNo}")

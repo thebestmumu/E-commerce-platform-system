@@ -8,11 +8,13 @@ import com.rabbiter.em.entity.Good;
 import com.rabbiter.em.entity.Standard;
 import com.rabbiter.em.service.GoodService;
 import com.rabbiter.em.service.StandardService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import java.util.List;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/good")
 public class GoodController {
@@ -27,7 +29,7 @@ public class GoodController {
     @Authority(AuthorityType.requireAuthority)
     @PostMapping
     public Result save(@RequestBody Good good) {
-        System.out.println(good);
+        log.debug("保存商品信息：{}", good);
         return Result.success(goodService.saveOrUpdateGood(good));
     }
 

@@ -39,36 +39,15 @@ public class AiServiceImpl implements AiService {
     private static final Logger log = LoggerFactory.getLogger(AiServiceImpl.class);
     
     /**
-     * 百度文心一言 API 密钥
+     * DeepSeek API 密钥（通过 langchain4j.open-ai.api-key 配置）
      */
-    @Value("${ai.baidu.api-key}")
+    @Value("${langchain4j.open-ai.api-key}")
     private String apiKey;
     
     /**
-     * 百度文心一言 API 密钥
+     * DeepSeek API URL（兼容 OpenAI 格式）
      */
-    @Value("${ai.baidu.secret-key}")
-    private String secretKey;
-    
-    /**
-     * 百度文心一言 API URL（新的千帆大模型平台接口）
-     */
-    private static final String BAIDU_API_URL = "https://qianfan.baidubce.com/v2/chat/completions";
-    
-    /**
-     * 百度文心一言 Token URL（已废弃，新的认证方式不需要）
-     */
-    private static final String BAIDU_TOKEN_URL = "https://aip.baidubce.com/oauth/2.0/token";
-    
-    /**
-     * 访问令牌
-     */
-    private String accessToken;
-    
-    /** 
-     * 令牌过期时间
-     */
-    private long tokenExpireTime;
+    private static final String DEEPSEEK_API_URL = "https://api.deepseek.com/v1/chat/completions";
     
     /**
      * AI 业务服务
@@ -123,7 +102,7 @@ public class AiServiceImpl implements AiService {
             latestMessage.setContent(request.getMessage());
             history.add(latestMessage);
             
-            // 转换为文心一言API所需的格式
+            // 转换为 DeepSeek API 所需的格式
             java.util.List<cn.hutool.json.JSONObject> messages = new java.util.ArrayList<>();
             for (ChatRequest.Message msg : history) {
                 cn.hutool.json.JSONObject msgObj = new cn.hutool.json.JSONObject();
@@ -563,11 +542,11 @@ public class AiServiceImpl implements AiService {
                 messages.add(latestMsg);
             }
             
-            requestBody.put("model", "ernie-3.5-8k");  // 指定模型
+            requestBody.put("model", "deepseek-chat");
             requestBody.put("messages", messages);
             
-            // 发送请求（使用新的认证方式）
-            String response = HttpRequest.post(BAIDU_API_URL)
+            // 发送请求
+            String response = HttpRequest.post(DEEPSEEK_API_URL)
                     .contentType("application/json")
                     .header("Authorization", "Bearer " + apiKey)
                     .body(requestBody.toString())
@@ -904,8 +883,8 @@ public class AiServiceImpl implements AiService {
     @Override
     public void streamChatWithWriter(ChatRequest request, PrintWriter writer) {
         try {
-            System.out.println("=== 开始流式聊天（同步版本）===");
-            System.out.println("用户消息：" + request.getMessage());
+            log.info("=== 开始流式聊天（同步版本）===");
+            log.info("用户消息：{}", request.getMessage());
             
             // ✅ 关键：先进行意图识别
             String mode = request.getMode(); // 从前端传入的模式：chat 或 help
@@ -913,13 +892,13 @@ public class AiServiceImpl implements AiService {
             
             // 如果是智能帮助模式，进行意图识别
             if ("help".equals(mode)) {
-                System.out.println("智能帮助模式：开始识别意图");
+                log.info("智能帮助模式：开始识别意图");
                 intent = recognizeIntentWithAI(request.getMessage());
-                System.out.println("识别出的用户意图：" + intent);
+                log.info("识别出的用户意图：{}", intent);
                 
                 // 如果不是聊天意图，先执行业务操作，然后流式输出结果
                 if (!"chat".equals(intent) && !"unknown".equals(intent)) {
-                    System.out.println("执行非聊天意图：" + intent);
+                    log.info("执行非聊天意图：{}", intent);
                     executeBusinessOperationWithStreaming(intent, request, writer);
                     return; // 业务操作已完成，直接返回
                 }
@@ -943,12 +922,12 @@ public class AiServiceImpl implements AiService {
             msgObj.put("content", request.getMessage());
             messages.add(msgObj);
             
-            requestBody.put("model", "ernie-3.5-8k");
+            requestBody.put("model", "deepseek-chat");
             requestBody.put("messages", messages);
             requestBody.put("stream", true);
             
-            // 2. 调用百度流式接口
-            java.net.URL url = new java.net.URL(BAIDU_API_URL);
+            // 2. 调用 DeepSeek 流式接口
+            java.net.URL url = new java.net.URL(DEEPSEEK_API_URL);
             java.net.HttpURLConnection connection = (java.net.HttpURLConnection) url.openConnection();
             connection.setRequestMethod("POST");
             connection.setRequestProperty("Content-Type", "application/json");
@@ -958,9 +937,9 @@ public class AiServiceImpl implements AiService {
             connection.setConnectTimeout(10000);
             connection.setReadTimeout(0);
             
-            System.out.println("百度 API URL: " + BAIDU_API_URL);
-            System.out.println("API Key: " + (apiKey != null ? apiKey.substring(0, 10) + "..." : "null"));
-            System.out.println("请求体：" + requestBody.toString());
+            log.debug("DeepSeek API URL: {}", DEEPSEEK_API_URL);
+            log.debug("API Key: {}", apiKey != null ? apiKey.substring(0, 10) + "..." : "null");
+            log.debug("请求体：{}", requestBody.toString());
             
             // 写入请求体
             try (java.io.OutputStream os = connection.getOutputStream()) {
@@ -969,8 +948,8 @@ public class AiServiceImpl implements AiService {
                 os.flush();
             }
             
-            System.out.println("百度 API 响应码：" + connection.getResponseCode());
-            System.out.println("百度 API 响应消息：" + connection.getResponseMessage());
+            log.debug("DeepSeek API 响应码：{}", connection.getResponseCode());
+            log.debug("DeepSeek API 响应消息：{}", connection.getResponseMessage());
             
             // 3. 逐行读取并实时推送给前端（同步执行，不开子线程）
             boolean hasReceivedDone = false; // 标记是否已收到 DONE
@@ -979,7 +958,7 @@ public class AiServiceImpl implements AiService {
                 String line;
                 
                 while ((line = reader.readLine()) != null) {
-                    System.out.println("百度返回原始数据：" + line); // 添加详细日志
+                    log.trace("DeepSeek 返回原始数据：{}", line);
                     
                     if (line.isEmpty()) continue;
                     
@@ -991,7 +970,7 @@ public class AiServiceImpl implements AiService {
                     
                     // 结束标志（检查原始行和去除前缀后的行）
                     if ("[DONE]".equals(line.trim()) || "[DONE]".equals(trimmedLine)) {
-                        System.out.println("收到百度返回的 [DONE] 标志");
+                        log.info("收到 DeepSeek 返回的 [DONE] 标志");
                         hasReceivedDone = true;
                         // ✅ 规范性：[DONE] 标志也应该包含 event 字段
                         writer.write("event: done\n");
@@ -999,29 +978,29 @@ public class AiServiceImpl implements AiService {
                         writer.flush();
                         // 检查是否有错误
                         if (writer.checkError()) {
-                            System.out.println("推送 [DONE] 时检测到错误");
+                            log.warn("推送 [DONE] 时检测到错误");
                         }
                         break;
                     }
                     
-                    // 解析百度返回的内容片段
+                    // 解析 DeepSeek 返回的内容片段
                     try {
                         // ✅ 关键修复：使用 trim 后的数据解析 JSON
                         JSONObject obj = JSONUtil.parseObj(trimmedLine);
                         JSONArray choices = obj.getJSONArray("choices");
                         if (choices == null || choices.isEmpty()) {
-                            System.out.println("choices 为空，跳过");
+                            log.debug("choices 为空，跳过");
                             continue;
                         }
                         
                         JSONObject delta = choices.getJSONObject(0).getJSONObject("delta");
-                        System.out.println("delta 对象：" + delta.toString());
+                        log.trace("delta 对象：{}", delta.toString());
                         
                         // ✅ 关键：delta 可能没有 content 字段（如只有 role）
                         String content = delta.get("content") != null ? delta.getStr("content") : null;
                         
                         if (content != null && !content.isEmpty()) {
-                            System.out.println("实时推送给前端：" + content);
+                            log.debug("实时推送给前端：{}", content);
                             
                             // 使用标准 SSE 格式发送
                             Map<String, Object> map = new HashMap<>();
@@ -1035,51 +1014,50 @@ public class AiServiceImpl implements AiService {
                             
                             // 检查是否有错误
                             if (writer.checkError()) {
-                                System.out.println("推送内容时检测到错误：" + content);
+                                log.warn("推送内容时检测到错误：{}", content);
                                 break;
                             }
                             
-                            System.out.println("已推送给前端：" + content);
+                            log.trace("已推送给前端：{}", content);
                         } else {
-                            System.out.println("content 为空或不存在，跳过");
+                            log.debug("content 为空或不存在，跳过");
                         }
                     } catch (Exception e) {
-                        System.out.println("解析消息失败：" + e.getMessage());
-                        System.out.println("原始行：" + line);
-                        System.out.println("trim 后：" + trimmedLine);
+                        log.warn("解析消息失败：{}", e.getMessage());
+                        log.debug("原始行：{}", line);
+                        log.debug("trim 后：{}", trimmedLine);
                     }
                 }
                 
                 // ✅ 关键修复：只有当没有收到 [DONE] 时，才手动发送 done 标志
                 if (!hasReceivedDone) {
-                    System.out.println("百度流式数据读取完成（未收到 [DONE]），手动发送 DONE 标志");
+                    log.info("DeepSeek 流式数据读取完成（未收到 [DONE]），手动发送 DONE 标志");
                     writer.write("event: done\n");
                     writer.write("data: [DONE]\n\n");
                     writer.flush();
                 } else {
-                    System.out.println("已收到 [DONE] 标志，不再重复发送");
+                    log.debug("已收到 [DONE] 标志，不再重复发送");
                 }
                 
             } finally {
                 connection.disconnect();
-                System.out.println("百度连接已断开");
+                log.debug("DeepSeek 连接已断开");
             }
             
         } catch (Exception e) {
-            System.out.println("整体失败：" + e.getMessage());
-            e.printStackTrace();
+            log.error("流式聊天整体失败：{}", e.getMessage(), e);
             // 尝试发送错误消息给前端
             try {
                 writer.write("event: error\n");
                 writer.write("data: {\"error\":\"" + e.getMessage() + "\"}\n\n");
                 writer.flush();
             } catch (Exception ex) {
-                // 忽略
+                log.warn("发送错误消息给前端失败", ex);
             }
         } finally {
             // ✅ 规范性：确保 PrintWriter 被关闭
             writer.close();
-            System.out.println("PrintWriter 已关闭");
+            log.debug("PrintWriter 已关闭");
         }
     }
     
@@ -1088,7 +1066,7 @@ public class AiServiceImpl implements AiService {
      */
     private void executeBusinessOperationWithStreaming(String intent, ChatRequest request, PrintWriter writer) {
         try {
-            System.out.println("开始执行业务操作（流式版本）：" + intent);
+            log.info("开始执行业务操作（流式版本）：{}", intent);
             
             // ✅ 关键：复用 handleHelpMode 的完整业务逻辑
             // 创建一个临时的 ChatResponse，模拟 handleHelpMode 的执行结果
@@ -1096,7 +1074,7 @@ public class AiServiceImpl implements AiService {
             
             // ✅ 关键：先发送 action 给前端，让前端执行操作
             if (response != null && response.getAction() != null) {
-                System.out.println("发送 action 给前端：" + response.getAction());
+                log.info("发送 action 给前端：{}", response.getAction());
                 Map<String, Object> actionMap = new HashMap<>();
                 actionMap.put("action", response.getAction());
                 actionMap.put("actionData", response.getActionData());
@@ -1108,7 +1086,7 @@ public class AiServiceImpl implements AiService {
             }
             
             // 流式输出结果
-            System.out.println("开始流式输出业务操作结果");
+            log.info("开始流式输出业务操作结果");
             
             // 输出 AI 回复
             if (response != null && response.getContent() != null) {
@@ -1120,17 +1098,16 @@ public class AiServiceImpl implements AiService {
             writer.write("data: [DONE]\n\n");
             writer.flush();
             
-            System.out.println("业务操作执行完成");
+            log.info("业务操作执行完成");
             
         } catch (Exception e) {
-            System.out.println("执行业务操作失败：" + e.getMessage());
-            e.printStackTrace();
+            log.error("执行业务操作失败：{}", e.getMessage(), e);
             try {
                 writer.write("event: error\n");
                 writer.write("data: {\"error\":\"" + e.getMessage() + "\"}\n\n");
                 writer.flush();
             } catch (Exception ex) {
-                // 忽略
+                log.warn("发送错误消息给前端失败", ex);
             }
         }
     }
@@ -1142,18 +1119,18 @@ public class AiServiceImpl implements AiService {
         try {
             // 提取实体
             Object entities = extractEntities(request.getMessage(), intent);
-            System.out.println("提取到的实体：" + entities);
+            log.debug("提取到的实体：{}", entities);
             
             // 执行业务操作
             Object result = null;
             String aiResponse = "";
             
             if ("search".equals(intent)) {
-                System.out.println("执行搜索操作");
+                log.debug("执行搜索操作");
                 result = aiBusinessService.search(entities.toString());
                 aiResponse = "已为您找到相关商品，请查看搜索结果。";
             } else if ("addCart".equals(intent)) {
-                System.out.println("执行添加购物车操作");
+                log.debug("执行添加购物车操作");
                 java.util.Map<String, Object> params = new java.util.HashMap<>();
                 if (entities instanceof java.util.Map) {
                     params.putAll((java.util.Map<String, Object>) entities);
@@ -1166,7 +1143,7 @@ public class AiServiceImpl implements AiService {
                 result = aiBusinessService.addCart(params);
                 aiResponse = "商品已成功添加到购物车！";
             } else if ("batchAddCart".equals(intent)) {
-                System.out.println("执行批量添加购物车操作");
+                log.debug("执行批量添加购物车操作");
                 java.util.List<java.util.Map<String, Object>> paramsList = new java.util.ArrayList<>();
                 if (entities instanceof java.util.List) {
                     paramsList = (java.util.List<java.util.Map<String, Object>>) entities;
@@ -1181,7 +1158,7 @@ public class AiServiceImpl implements AiService {
                 result = aiBusinessService.batchAddCart(paramsList);
                 aiResponse = "商品已成功添加到购物车！";
             } else if ("queryOrder".equals(intent)) {
-                System.out.println("执行订单查询操作");
+                log.debug("执行订单查询操作");
                 java.util.Map<String, Object> params = new java.util.HashMap<>();
                 if (entities instanceof java.util.Map) {
                     params.putAll((java.util.Map<String, Object>) entities);
@@ -1194,7 +1171,7 @@ public class AiServiceImpl implements AiService {
                 result = aiBusinessService.queryOrder(params);
                 aiResponse = "已为您查询到订单信息，请查看详情。";
             } else if ("navigate".equals(intent)) {
-                System.out.println("执行页面导航操作");
+                log.debug("执行页面导航操作");
                 // 正确提取页面名称
                 String pageName = "";
                 if (entities instanceof java.util.Map) {
@@ -1215,20 +1192,20 @@ public class AiServiceImpl implements AiService {
                 } else {
                     pageName = "首页";
                 }
-                System.out.println("导航页面名称：" + pageName);
+                log.debug("导航页面名称：{}", pageName);
                 result = aiBusinessService.navigate(pageName);
                 aiResponse = "正在为您导航到" + pageName + "...";
             } else if ("logout".equals(intent)) {
-                System.out.println("执行退出登录操作");
+                log.debug("执行退出登录操作");
                 result = aiBusinessService.logout(request.getUserId());
                 aiResponse = "已为您退出登录。";
             } else if ("recommend".equals(intent)) {
-                System.out.println("执行个性化推荐操作");
+                log.debug("执行个性化推荐操作");
                 Long userId = request.getUserId() != null ? Long.parseLong(request.getUserId().toString()) : 1L;
                 result = aiBusinessService.recommendGoodsForUser(userId);
                 aiResponse = "根据您的浏览和购买记录，为您推荐以下商品：";
             } else if ("quickOrder".equals(intent)) {
-                System.out.println("执行一键下单操作");
+                log.debug("执行一键下单操作");
                 java.util.Map<String, Object> params = new java.util.HashMap<>();
                 if (entities instanceof java.util.Map) {
                     params.putAll((java.util.Map<String, Object>) entities);
@@ -1239,7 +1216,7 @@ public class AiServiceImpl implements AiService {
                 result = aiBusinessService.quickOrder(params);
                 aiResponse = "订单创建成功！正在为您跳转到支付页面...";
             } else if ("trackOrder".equals(intent)) {
-                System.out.println("执行订单状态跟踪操作");
+                log.debug("执行订单状态跟踪操作");
                 String orderNo = entities != null ? entities.toString() : null;
                 Long userId = request.getUserId() != null ? Long.parseLong(request.getUserId().toString()) : 1L;
                 if (orderNo == null || orderNo.isEmpty()) {
@@ -1250,13 +1227,13 @@ public class AiServiceImpl implements AiService {
                     aiResponse = "您的订单状态如下：";
                 }
             } else if ("analyzeOrders".equals(intent)) {
-                System.out.println("执行订单历史分析操作");
+                log.debug("执行订单历史分析操作");
                 Long userId = request.getUserId() != null ? Long.parseLong(request.getUserId().toString()) : 1L;
                 result = aiBusinessService.analyzeOrderHistory(userId);
                 aiResponse = "您的订单分析报告如下：";
             } else {
                 // 其他意图，让 AI 生成回复
-                System.out.println("执行其他操作");
+                log.debug("执行其他操作");
                 String aiResponsePrompt = "请针对用户的需求生成一个友好的回复：" + request.getMessage();
                 aiResponse = getAiResponse(aiResponsePrompt);
             }
@@ -1276,8 +1253,7 @@ public class AiServiceImpl implements AiService {
             return response;
             
         } catch (Exception e) {
-            System.out.println("模拟 handleHelpMode 失败：" + e.getMessage());
-            e.printStackTrace();
+            log.error("模拟 handleHelpMode 失败：{}", e.getMessage(), e);
             ChatResponse errorResponse = new ChatResponse();
             errorResponse.setSuccess(false);
             errorResponse.setMessage("抱歉，我暂时无法处理您的需求");
@@ -1306,7 +1282,7 @@ public class AiServiceImpl implements AiService {
             
             // 检查是否有错误
             if (writer.checkError()) {
-                System.out.println("推送内容时检测到错误");
+                log.warn("推送SSE内容时检测到客户端连接异常");
                 break;
             }
             

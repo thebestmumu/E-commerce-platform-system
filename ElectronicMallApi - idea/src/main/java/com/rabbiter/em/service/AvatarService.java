@@ -7,6 +7,7 @@ import com.rabbiter.em.constants.Constants;
 import com.rabbiter.em.entity.Avatar;
 import com.rabbiter.em.exception.ServiceException;
 import com.rabbiter.em.mapper.AvatarMapper;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -20,6 +21,7 @@ import java.net.URLEncoder;
 import java.util.List;
 import java.util.UUID;
 
+@Slf4j
 @Service
 public class AvatarService {
     @Resource
@@ -32,14 +34,14 @@ public class AvatarService {
         try {
             inputStream = uploadFile.getInputStream();
         } catch (IOException e) {
-            e.printStackTrace();
+            log.error("读取头像文件输入流失败", e);
         }
         String md5 = SecureUtil.md5(inputStream);
         Avatar dbAvatar = avatarMapper.selectByMd5(md5);
         if(dbAvatar==null){
             String originalFilename = uploadFile.getOriginalFilename(); //文件原始名字
             String type = originalFilename.substring(originalFilename.lastIndexOf(".")+1);  //文件后缀
-            System.out.println(originalFilename+"   "+type);
+            log.debug("头像文件：{}, 类型：{}", originalFilename, type);
             long size = uploadFile.getSize() / 1024; //文件大小，单位kb
             //文件不存在，则保存文件
             File folder = new File(Constants.avatarFolderPath);
@@ -47,7 +49,7 @@ public class AvatarService {
                 folder.mkdir();
             }
             String folderPath = folder.getAbsolutePath()+"/";   //文件存储文件夹的位置
-            System.out.println("文件存储地址"+folderPath);
+            log.debug("头像文件存储地址：{}", folderPath);
 
 
             //将文件保存为UUID的名字，通过uuid生成url
@@ -57,11 +59,11 @@ public class AvatarService {
             try {
                 uploadFile.transferTo(targetFile);
             } catch (IOException e) {
-                e.printStackTrace();
+                log.error("头像文件保存失败：{}", finalFileName, e);
             }
             url = "/avatar/"+finalFileName;
             Avatar avatar = new Avatar(type, size, url, md5);
-            System.out.println(avatar);
+            log.debug("保存头像记录：{}", avatar);
             avatarMapper.save(avatar);
             return url;
         }
@@ -81,24 +83,24 @@ public class AvatarService {
             os.flush();
             os.close();
         } catch (IOException e) {
-            e.printStackTrace();
+            log.error("头像文件下载失败：{}", fileName, e);
         }
     }
 
     public int delete(int id) {
         Avatar avatar = avatarMapper.selectById(id);
         int delete = avatarMapper.delete(id);
-        System.out.println(delete);
+        log.debug("删除头像记录，影响行数：{}", delete);
         if(delete==1){
             String fileName = StrUtil.subAfter(avatar.getUrl(),"/",true);
-            System.out.println(fileName);
+            log.debug("待删除头像文件名：{}", fileName);
             File file = new File(Constants.avatarFolderPath+fileName);
-            System.out.println(file.getAbsolutePath());
+            log.debug("待删除文件路径：{}", file.getAbsolutePath());
             if(file.exists()){
 
                 boolean delete1 = file.delete();
                 if(delete1){
-                    System.out.println("删除成功");
+                    log.debug("头像文件删除成功");
                 }
             }
         }

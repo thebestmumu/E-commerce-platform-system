@@ -15,9 +15,23 @@ public class Result {
     public static Result success(Object data){
         return new Result(Constants.CODE_200,null,data);
     }
+
+    public static Result ok(Object data){
+        return new Result(Constants.CODE_200,null,data);
+    }
+
+    public static Result ok(Object data, String msg){
+        return new Result(Constants.CODE_200,msg,data);
+    }
+
     public static Result error(){
         return new Result(Constants.CODE_500,null,null);
     }
+
+    public static Result error(String msg){
+        return new Result(Constants.CODE_500,msg,null);
+    }
+
     public static Result error(String code,String msg){
         return new Result(code,msg,null);
     }

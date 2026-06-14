@@ -8,11 +8,13 @@ import com.alipay.api.request.AlipayTradeRefundRequest;
 import com.alipay.api.response.AlipayTradePagePayResponse;
 import com.alipay.api.response.AlipayTradeQueryResponse;
 import com.alipay.api.response.AlipayTradeRefundResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
 
+@Slf4j
 @Service
 public class AlipayService {
 
@@ -42,7 +44,7 @@ public class AlipayService {
             AlipayTradePagePayResponse response = alipayClient.pageExecute(request);
             return response.getBody();
         } catch (AlipayApiException e) {
-            e.printStackTrace();
+            log.error("创建支付宝支付表单失败，订单号：{}", orderNo, e);
             return null;
         }
     }

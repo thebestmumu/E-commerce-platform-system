@@ -27,6 +27,15 @@ public class UserService extends ServiceImpl<UserMapper, User> {
     @Resource
     RedisTemplate<String,User> redisTemplate;
 
+    /**
+     * 根据用户名查询用户
+     */
+    public User getByUsername(String username) {
+        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("username", username);
+        return getOne(queryWrapper);
+    }
+
     public UserDTO login(LoginForm loginForm) {
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("username",loginForm.getUsername());
@@ -36,13 +45,13 @@ public class UserService extends ServiceImpl<UserMapper, User> {
             throw new ServiceException(Constants.CODE_403,"用户名或密码错误");
         }
         String token = TokenUtils.genToken(user.getId().toString(), user.getUsername());
-        //把用户存到redis中
+        //把用户存到 redis 中
         redisTemplate.opsForValue().set(RedisConstants.USER_TOKEN_KEY + token,user);
-        //jwt不设置过期时间，只设置redis过期时间。
+        //jwt 不设置过期时间，只设置 redis 过期时间。
         redisTemplate.expire(RedisConstants.USER_TOKEN_KEY +token, RedisConstants.USER_TOKEN_TTL, TimeUnit.MINUTES);
-        //把查到的user的一些属性赋值给userDTO
+        //把查到的 user 的一些属性赋值给 userDTO
         UserDTO userDTO = BeanUtil.copyProperties(user,UserDTO.class);
-        //设置token
+        //设置 token
         userDTO.setToken(token);
         return userDTO;
 

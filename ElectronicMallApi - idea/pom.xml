@@ -101,6 +101,18 @@
             <version>2.11.1</version>
         </dependency>
         
+        <!-- WebSocket 支持 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-websocket</artifactId>
+        </dependency>
+        
+        <!-- AOP 支持（用于速率限制拦截器） -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-aop</artifactId>
+        </dependency>
+        
         <!-- LangChain4j - AI 大模型集成 (0.35.0 是最后一个支持 Java 8 的版本) -->
         <dependency>
             <groupId>dev.langchain4j</groupId>
@@ -118,15 +130,69 @@
             <artifactId>langchain4j-core</artifactId>
             <version>0.35.0</version>
         </dependency>
-        <!-- 百度文心一言适配器（使用 OpenAI 兼容接口） -->
-        <!-- 注：langchain4j-qianfan 不存在，使用 OpenAI 适配器替代 -->
+        <!-- OpenTelemetry 追踪集成（用于 Langfuse） -->
+        <dependency>
+            <groupId>io.opentelemetry</groupId>
+            <artifactId>opentelemetry-api</artifactId>
+            <version>1.32.0</version>
+        </dependency>
+        <dependency>
+            <groupId>io.opentelemetry</groupId>
+            <artifactId>opentelemetry-sdk</artifactId>
+            <version>1.32.0</version>
+        </dependency>
+        <dependency>
+            <groupId>io.opentelemetry</groupId>
+            <artifactId>opentelemetry-exporter-otlp</artifactId>
+            <version>1.32.0</version>
+        </dependency>
+        <dependency>
+            <groupId>io.opentelemetry.semconv</groupId>
+            <artifactId>opentelemetry-semconv</artifactId>
+            <version>1.21.0-alpha</version>
+        </dependency>
+        <!-- LangSmith 追踪集成（注释掉，因为 Maven 仓库没有这个依赖） -->
+        <!-- 
+        <dependency>
+            <groupId>dev.langchain4j</groupId>
+            <artifactId>langchain4j-langsmith</artifactId>
+            <version>0.35.0</version>
+        </dependency>
+        -->
+        <!-- 文心一言集成（百度 ERNIE Bot） -->
+        <dependency>
+            <groupId>dev.langchain4j</groupId>
+            <artifactId>langchain4j-qianfan</artifactId>
+            <version>0.35.0</version>
+        </dependency>
 
         <dependency>
             <groupId>com.sun.xml.fastinfoset</groupId>
             <artifactId>FastInfoset</artifactId>
             <version>1.2.18</version>
         </dependency>
-        
+
+        <!-- LangChain4j Embedding 模型（中文优化，用于 RAG 知识库） -->
+        <dependency>
+            <groupId>dev.langchain4j</groupId>
+            <artifactId>langchain4j-embeddings-bge-small-zh-q</artifactId>
+            <version>0.35.0</version>
+        </dependency>
+
+        <!-- Chroma 向量数据库（开发环境） -->
+        <dependency>
+            <groupId>dev.langchain4j</groupId>
+            <artifactId>langchain4j-chroma</artifactId>
+            <version>0.35.0</version>
+        </dependency>
+
+        <!-- Pinecone 向量数据库（生产环境） -->
+        <dependency>
+            <groupId>dev.langchain4j</groupId>
+            <artifactId>langchain4j-pinecone</artifactId>
+            <version>0.35.0</version>
+        </dependency>
+
         <!-- 支付宝沙盒支付SDK -->
         <dependency>
             <groupId>com.alipay.sdk</groupId>

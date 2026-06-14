@@ -1,5 +1,6 @@
 package com.rabbiter.em.config;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.ServletContextAware;
@@ -10,6 +11,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 
+@Slf4j
 @Component
 public class ProcessContextAware implements ServletContextAware {
     @Value("${server.port}")
@@ -39,7 +41,7 @@ public class ProcessContextAware implements ServletContextAware {
                 processBuilder.start();
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            log.warn("释放端口 {} 失败：{}", port, e.getMessage());
         }
 
     }

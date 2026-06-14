@@ -17,11 +17,10 @@ public interface AiIntentEngine {
     AiIntentResult recognizeIntent(ChatRequest request);
     
     /**
-     * 批量识别意图
+     * 批量意图识别
      * @param requests 请求列表
      * @return 意图识别结果列表
      */
-    // List<AiIntentResult> batchRecognize(List<ChatRequest> requests);
     
     /**
      * 获取支持的意图列表

@@ -19,7 +19,7 @@ public class InterceptorConfig implements WebMvcConfigurer {
         //jwt 拦截器
         registry.addInterceptor(jwtInterceptor)
                 .addPathPatterns("/**")
-                .excludePathPatterns("/login","/register","/file/**","/avatar/**","/api/good/**","/api/icon/**","/api/category/**","/api/market/**","/api/carousel/**","/api/user/login","/api/user/register","/api/login","/api/register","/api/order/analytics/**","/api/order/userid/**","/api/ai/**","/api/review/**","/api/income/**","/api/mcp/**")
+                .excludePathPatterns("/login","/register","/file/**","/avatar/**","/api/good/**","/api/icon/**","/api/category/**","/api/market/**","/api/carousel/**","/api/user/login","/api/user/register","/api/login","/api/register","/api/order/analytics/**","/api/order/userid/**","/api/ai/**","/api/review/**","/api/income/**","/api/mcp/**","/api/service/login")
                 .order(0)
         ;
         //权限校验拦截器

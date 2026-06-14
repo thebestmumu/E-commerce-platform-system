@@ -3,8 +3,9 @@ package com.rabbiter.em.ai.controller;
 import com.rabbiter.em.ai.core.AiContextManager;
 import com.rabbiter.em.ai.entity.ChatRequest;
 import com.rabbiter.em.ai.entity.ChatResponse;
-import com.rabbiter.em.ai.service.AiAssistantService;
 import com.rabbiter.em.ai.service.AiService;
+import com.rabbiter.em.ai.service.SmartCustomerService;
+import com.rabbiter.em.annotation.RateLimit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,11 +14,10 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Executors;
 
 /**
  * AI 助手控制器
@@ -32,33 +32,61 @@ public class AiAssistantController {
     private AiService aiService;
     
     @Autowired
-    private AiAssistantService aiAssistantService;
-    
-    @Autowired
     private AiContextManager contextManager;
     
     @Autowired
     private com.rabbiter.em.ai.service.AiBusinessService aiBusinessService;
+
+    @Autowired
+    private SmartCustomerService smartCustomerService;
+
+    @Autowired
+    private com.rabbiter.em.ai.service.AiAssistantService aiAssistantService;
     
     /**
-     * 聊天对话（新版）
+     * 聊天对话（旧系统 - 规则引擎 + DeepSeek）
      * @param request 聊天请求
      * @return 聊天响应
      */
     @PostMapping("/chat")
+    @RateLimit(prefix = "ai_chat", key = "#userId", maxRequests = 60, windowSeconds = 60, 
+               message = "您发送消息太快了，请稍后再试")
     public ChatResponse chat(@RequestBody ChatRequest request) {
-        log.info("收到聊天请求，用户：{}, 消息：{}", request.getUserId(), request.getMessage());
-        
-        // 使用新的 AI 助手服务
-        ChatResponse response = aiAssistantService.chat(request);
-        
-        // 添加快捷指令
-        response.setQuickCommands(getQuickCommands(response.getAction()));
-        
-        log.info("返回响应：{}", response.getMessage());
-        return response;
+        log.info("旧系统：/api/ai/chat → AiService (旧)");
+        return aiService.chat(request);
     }
     
+    /**
+     * 流式聊天对话（旧系统 - PrintWriter 流式输出）
+     */
+    @PostMapping(value = "/chat/stream", produces = "text/event-stream;charset=UTF-8")
+    public SseEmitter streamChat(@RequestBody(required = false) ChatRequest request, HttpServletResponse response) {
+        if (request == null) {
+            request = new ChatRequest();
+            request.setMessage("你好");
+        }
+        log.info("旧系统: /api/ai/chat/stream → AiAssistantService (旧)");
+
+        // ★ 关键修复：必须先设置编码，再获取 writer，否则中文会变成 ???
+        response.setCharacterEncoding("UTF-8");
+        response.setContentType("text/event-stream;charset=UTF-8");
+
+        ChatRequest finalRequest = request;
+        SseEmitter emitter = new SseEmitter(0L);
+        Executors.newSingleThreadExecutor().execute(() -> {
+            try {
+                aiAssistantService.streamChatWithWriter(finalRequest, response.getWriter());
+            } catch (Exception e) {
+                log.error("旧系统流式处理异常", e);
+                try {
+                    response.getWriter().write("event: error\ndata: {\"error\":\"" + e.getMessage() + "\"}\n\n");
+                    response.getWriter().flush();
+                } catch (Exception ignored) {}
+            }
+        });
+        return emitter;
+    }
+
     /**
      * 获取对话历史
      */
@@ -70,7 +98,7 @@ public class AiAssistantController {
         result.put("data", history);
         return result;
     }
-    
+
     /**
      * 清空对话历史
      */
@@ -88,34 +116,7 @@ public class AiAssistantController {
         }
         return result;
     }
-    
-    /**
-     * 流式聊天对话（使用原生 Servlet 实现，确保 SSE 正确工作）
-     * @param request 聊天请求
-     * @param response HTTP 响应
-     */
-    @PostMapping(value = "/chat/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public void streamChat(@RequestBody(required = false) ChatRequest request, HttpServletResponse response) throws IOException {
-        // 如果没有请求体（GET 请求），创建一个默认请求
-        if (request == null) {
-            request = new ChatRequest();
-            request.setMessage("你好");
-        }
-        
-        // 设置 SSE 响应头
-        response.setContentType("text/event-stream;charset=UTF-8");
-        response.setCharacterEncoding("UTF-8");
-        response.setHeader("Cache-Control", "no-cache");
-        response.setHeader("Connection", "keep-alive");
-        response.setHeader("X-Accel-Buffering", "no"); // 禁用 Nginx 缓冲
-        
-        // 立即刷新响应头，确保客户端知道连接已建立
-        response.flushBuffer();
-        
-        // 调用新的 AI 助手服务层，使用双路径（LangChain4j + 百度文心一言）
-        aiAssistantService.streamChatWithWriter(request, response.getWriter());
-    }
-    
+
     /**
      * 个性化推荐接口
      * @param request 推荐请求（包含 userId）
@@ -234,5 +235,55 @@ public class AiAssistantController {
     @RequestMapping("/health")
     public String health() {
         return "AI assistant service is running";
+    }
+
+    // ==================== 智能客服系统 API（RAG + ReAct + Skills + MCP）====================
+
+    @PostMapping("/smart/chat")
+    public ChatResponse smartChat(@RequestBody ChatRequest request) {
+        log.info("[智能客服] 收到请求，用户: {}, 消息: {}", request.getUserId(), request.getMessage());
+        return smartCustomerService.processMessage(request);
+    }
+
+    @PostMapping(value = "/smart/chat/stream", produces = "text/event-stream;charset=UTF-8")
+    public SseEmitter smartStreamChat(@RequestBody ChatRequest request) {
+        log.info("[智能客服-流式] 用户: {}, 消息: {}", request.getUserId(), request.getMessage());
+        return smartCustomerService.streamProcessMessage(request);
+    }
+
+    @PostMapping("/smart/knowledge")
+    public ChatResponse queryKnowledge(@RequestBody ChatRequest request) {
+        log.info("[知识库] 查询，消息: {}", request.getMessage());
+        return smartCustomerService.queryKnowledge(request);
+    }
+
+    @PostMapping("/smart/knowledge/{category}")
+    public ChatResponse queryKnowledgeByCategory(
+            @PathVariable String category,
+            @RequestBody ChatRequest request) {
+        log.info("[知识库] {} 分类查询，消息: {}", category, request.getMessage());
+        return smartCustomerService.queryKnowledgeByCategory(request, category);
+    }
+
+    @GetMapping("/smart/knowledge/categories")
+    public Map<String, Object> getKnowledgeCategories() {
+        return smartCustomerService.getKnowledgeCategories();
+    }
+
+    @PostMapping("/smart/transfer/human")
+    public ChatResponse transferToHuman(@RequestBody ChatRequest request) {
+        log.info("[转人工] 用户: {}", request.getUserId());
+        ChatResponse response = new ChatResponse();
+        response.setSuccess(true);
+        response.setMessage("正在为您转接人工客服，请稍候...");
+        response.setAction("transfer_to_human");
+        Map<String, Object> data = new HashMap<>();
+        data.put("channels", List.of(
+                Map.of("type", "online", "label", "在线客服", "desc", "点击右下角'联系客服'图标"),
+                Map.of("type", "phone", "label", "客服热线", "desc", "400-800-8888"),
+                Map.of("type", "service_hours", "label", "服务时间", "desc", "9:00-21:00")
+        ));
+        response.setActionData(data);
+        return response;
     }
 }

@@ -13,6 +13,7 @@ import com.rabbiter.em.entity.User;
 import com.rabbiter.em.entity.dto.UserDTO;
 import com.rabbiter.em.service.UserService;
 import com.rabbiter.em.utils.TokenUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
@@ -24,6 +25,7 @@ import java.util.List;
 也可以配置config类
  */
 @CrossOrigin
+@Slf4j
 @RestController
 public class UserController {
     @Autowired
@@ -46,6 +48,12 @@ public class UserController {
     public Result getUserInfoByName(@PathVariable String username) {
         User one = userService.getOne(username);
         return Result.success(one);
+    }
+
+    @GetMapping("/user/info/{id}")
+    public Result getUserInfoById(@PathVariable Long id) {
+        User user = userService.getById(id);
+        return Result.success(user);
     }
 
     @GetMapping("/userid")
@@ -105,7 +113,7 @@ public class UserController {
             userQueryWrapper.like("nickname", nickname);
         }
         userQueryWrapper.orderByDesc("id");
-        System.out.println("============" + TokenUtils.getCurrentUser());
+        log.debug("查询用户列表，当前用户: {}", TokenUtils.getCurrentUser());
         return Result.success(userService.page(userPage, userQueryWrapper));
     }
 

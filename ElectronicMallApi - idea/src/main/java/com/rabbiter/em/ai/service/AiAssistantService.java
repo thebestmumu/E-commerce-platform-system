@@ -25,7 +25,7 @@ import java.util.Map;
 /**
  * AI 助手核心服务
  * 整合意图识别、上下文管理、业务处理等功能
- * V2.0 - 基于 LangChain4j + 文心一言
+ * V2.0 - 基于 LangChain4j + DeepSeek
  */
 @Service
 public class AiAssistantService {
@@ -70,11 +70,8 @@ public class AiAssistantService {
     @Value("${ai.assistant.default-provider:langchain4j}")
     private String defaultProvider;
     
-    @Value("${ai.baidu.api-key}")
-    private String baiduApiKey;
-    
-    @Value("${ai.baidu.secret-key}")
-    private String baiduSecretKey;
+    @Value("${langchain4j.open-ai.api-key}")
+    private String deepseekApiKey;
     
     /**
      * 处理聊天请求
@@ -104,19 +101,18 @@ public class AiAssistantService {
                 log.info("<<< 返回消息：{}", response.getMessage() != null ? response.getMessage().substring(0, Math.min(50, response.getMessage().length())) + "..." : "null");
                 return response;
             } catch (Exception e) {
-                log.warn("<<< LangChain4j 处理失败，准备降级到百度文心一言");
-                log.warn("<<< 失败原因：{}", e.getMessage());
-                log.warn("<<< 降级路径：AiAssistantService -> handleWithBaidu -> 百度文心一言");
-                // 降级到百度文心一言
+                log.warn("<<< LangChain4j 处理失败，降级到规则引擎");
+                log.warn("<<< 降级路径：AiAssistantService -> handleWithBaidu -> 规则引擎");
+                // 降级到规则引擎
                 return handleWithBaidu(request);
             }
         }
         
-        // 否则使用百度文心一言
-        log.info(">>> 选择策略：使用百度文心一言处理请求（备用方案）");
-        log.info(">>> 路径：AiAssistantService -> handleWithBaidu -> 百度文心一言 -> 规则引擎");
+        // 否则使用规则引擎
+        log.info(">>> 选择策略：使用规则引擎处理请求（备用方案）");
+        log.info(">>> 路径：AiAssistantService -> handleWithBaidu -> 规则引擎");
         ChatResponse response = handleWithBaidu(request);
-        log.info("<<< 百度文心一言处理完成");
+        log.info("<<< 规则引擎处理完成");
         log.info("<<< 返回消息：{}", response.getMessage() != null ? response.getMessage().substring(0, Math.min(50, response.getMessage().length())) + "..." : "null");
         return response;
     }
@@ -174,7 +170,7 @@ public class AiAssistantService {
     }
     
     /**
-     * 使用百度文心一言处理请求（备用方案）
+     * 使用规则引擎处理请求（备用方案）
      */
     private ChatResponse handleWithBaidu(ChatRequest request) {
         log.info("========================================");
@@ -812,71 +808,71 @@ public class AiAssistantService {
     }
     
     /**
-     * 流式聊天对话（DeepSeek + LangChain4j 主路径，百度备选）
+     * 流式聊天对话（DeepSeek + LangChain4j 主路径，规则引擎备选）
      * @param request 聊天请求
      * @param writer PrintWriter 用于写入响应流
      */
     public void streamChatWithWriter(ChatRequest request, java.io.PrintWriter writer) {
         try {
-            System.out.println("=== 开始流式聊天（DeepSeek 主路径版本）===");
-            System.out.println("用户消息：" + request.getMessage());
-            System.out.println("LangChain4j 启用状态：" + langChainEnabled);
-            System.out.println("LangChainAiService 是否可用：" + (langChainAiService != null));
-            System.out.println("MCP 启用状态：" + mcpEnabled);
-            System.out.println("McpStreamService 是否可用：" + (mcpStreamService != null));
+            log.info("=== 开始流式聊天（DeepSeek 主路径版本）===");
+            log.debug("用户消息：" + request.getMessage());
+            log.debug("LangChain4j 启用状态：" + langChainEnabled);
+            log.debug("LangChainAiService 是否可用：" + (langChainAiService != null));
+            log.debug("MCP 启用状态：" + mcpEnabled);
+            log.debug("McpStreamService 是否可用：" + (mcpStreamService != null));
 
             // MCP 工具调用模式（优先级最高）
             String mode = request.getMode();
             if (mcpEnabled && mcpStreamService != null && !"help".equals(mode)) {
-                System.out.println(">>> 选择策略：使用 MCP 工具调用模式处理请求");
+                log.debug(">>> 选择策略：使用 MCP 工具调用模式处理请求");
                 try {
                     mcpStreamService.streamChat(request, writer);
-                    System.out.println("<<< MCP 流式处理成功");
+                    log.debug("<<< MCP 流式处理成功");
                     return;
                 } catch (Exception e) {
-                    System.out.println("<<< MCP 流式处理失败，降级到传统模式");
-                    System.out.println("<<< 失败原因：" + e.getMessage());
+                    log.debug("<<< MCP 流式处理失败，降级到传统模式");
+                    log.debug("<<< 失败原因：" + e.getMessage());
                     // 继续走原有的处理逻辑
                 }
             }
             
             // 如果是智能帮助模式，使用 DeepSeek 进行完整的 AI 意图识别流程
             if ("help".equals(mode)) {
-                System.out.println("智能帮助模式：使用 DeepSeek 进行意图识别");
+                log.debug("智能帮助模式：使用 DeepSeek 进行意图识别");
                 handleHelpModeWithStreaming(request, writer);
                 return;
             }
             
-            // 对话模式：优先使用 DeepSeek，失败降级到百度
+            // 对话模式：优先使用 DeepSeek，失败降级到规则引擎
             if (langChainEnabled && langChainAiService != null) {
-                System.out.println(">>> 选择策略：使用 DeepSeek + LangChain4j 处理请求（主方案）");
-                System.out.println(">>> 路径：AiAssistantService -> LangChainAiService -> DeepSeek API");
+                log.debug(">>> 选择策略：使用 DeepSeek + LangChain4j 处理请求（主方案）");
+                log.debug(">>> 路径：AiAssistantService -> LangChainAiService -> DeepSeek API");
                 try {
                     streamWithLangChain4j(request, writer);
-                    System.out.println("<<< DeepSeek 流式处理成功");
+                    log.debug("<<< DeepSeek 流式处理成功");
                 } catch (Exception e) {
-                    System.out.println("<<< DeepSeek 流式处理失败，降级到百度文心一言");
-                    System.out.println("<<< 失败原因：" + e.getMessage());
-                    System.out.println("<<< 降级路径：AiAssistantService -> streamWithBaidu -> 百度文心一言");
+                    log.debug("<<< DeepSeek 流式处理失败，降级到 DeepSeek 直接调用");
+                    log.debug("<<< 失败原因：" + e.getMessage());
+                    log.debug("<<< 降级路径：AiAssistantService -> streamWithBaidu -> DeepSeek API");
                     streamWithBaidu(request, writer);
                 }
             } else {
-                System.out.println(">>> 选择策略：使用百度文心一言处理请求（备用方案）");
-                System.out.println(">>> 路径：AiAssistantService -> streamWithBaidu -> 百度文心一言");
+                log.debug(">>> 选择策略：使用 DeepSeek 直接调用处理请求（备用方案）");
+                log.debug(">>> 路径：AiAssistantService -> streamWithBaidu -> DeepSeek API");
                 streamWithBaidu(request, writer);
             }
             
-            System.out.println("=== 流式聊天完成 ===");
+            log.debug("=== 流式聊天完成 ===");
             
         } catch (Exception e) {
-            System.err.println("流式聊天异常：" + e.getMessage());
-            e.printStackTrace();
+            log.error("流式聊天异常：" + e.getMessage());
+            log.error("异常详情", e);
             try {
                 writer.write("event: error\n");
                 writer.write("data: {\"error\":\"处理失败\"}\n\n");
                 writer.flush();
             } catch (Exception ex) {
-                ex.printStackTrace();
+                log.error("写入SSE响应失败", ex);
             }
         } finally {
             if (writer != null) {
@@ -890,21 +886,21 @@ public class AiAssistantService {
      */
     private void handleHelpModeWithStreaming(ChatRequest request, java.io.PrintWriter writer) {
         try {
-            System.out.println("=== 开始智能帮助模式（DeepSeek 版本）===");
+            log.debug("=== 开始智能帮助模式（DeepSeek 版本）===");
             
             // 0. 保存用户消息到上下文
             if (request.getUserId() != null) {
                 contextManager.addMessage(request.getUserId(), "user", request.getMessage());
-                System.out.println("用户消息已保存到上下文");
+                log.debug("用户消息已保存到上下文");
             }
             
             // 1. 使用 DeepSeek 进行意图识别（复用原有的大段 prompt 逻辑）
             String intent = recognizeIntentWithDeepSeek(request.getMessage());
-            System.out.println("识别出的用户意图：" + intent);
+            log.debug("识别出的用户意图：" + intent);
             
             // 2. 如果用户在进行聊天，直接进入对话模式
             if ("chat".equals(intent)) {
-                System.out.println("用户意图为聊天，进入对话模式（DeepSeek）");
+                log.debug("用户意图为聊天，进入对话模式（DeepSeek）");
                 // 直接使用 DeepSeek 对话，不经过规则引擎重新识别（避免简短商品词误判）
                 try {
                     String aiResponse = langChainAiService.chat(request.getUserId(), request.getMessage());
@@ -912,7 +908,7 @@ public class AiAssistantService {
                         streamAiResponse(aiResponse, writer);
                     }
                 } catch (Exception e) {
-                    System.out.println("DeepSeek 对话失败：" + e.getMessage());
+                    log.debug("DeepSeek 对话失败：" + e.getMessage());
                     java.util.Map<String, Object> map = new java.util.HashMap<>();
                     map.put("content", "抱歉，我暂时无法回复您的问题。");
                     String json = cn.hutool.json.JSONUtil.toJsonStr(map);
@@ -926,21 +922,21 @@ public class AiAssistantService {
             }
             
             // 3. 提取实体
-            System.out.println("开始提取实体");
+            log.debug("开始提取实体");
             Object entities = extractEntities(request.getMessage(), intent);
-            System.out.println("提取到的实体：" + entities);
+            log.debug("提取到的实体：" + entities);
             
             // 4. 执行业务操作并流式输出（使用新的流式方法）
             // 对于不需要提取实体的意图（如 analyze_orders、query_orders、track_order、analyze_sentiment、analyze_sales、view_good_detail、add_to_cart、quick_order），直接执行业务逻辑
             if (!"unknown".equals(intent) && (entities != null || "analyze_orders".equals(intent) || "query_orders".equals(intent) || "track_order".equals(intent) || "analyze_sentiment".equals(intent) || "analyze_sales".equals(intent) || "view_good_detail".equals(intent) || "add_to_cart".equals(intent) || "quick_order".equals(intent))) {
-                System.out.println("开始执行业务操作（流式版本）：" + intent);
+                log.debug("开始执行业务操作（流式版本）：" + intent);
                 
                 // 特殊处理订单分析（不需要提取实体）
                 if ("analyze_orders".equals(intent)) {
-                    System.out.println("执行订单分析操作");
+                    log.debug("执行订单分析操作");
                     
                     // 1. 先发送思考过程
-                    System.out.println("发送思考过程");
+                    log.debug("发送思考过程");
                     java.util.List<String> thinkingSteps = new java.util.ArrayList<>();
                     thinkingSteps.add("识别用户意图：分析订单历史");
                     thinkingSteps.add("查询用户订单数据");
@@ -959,7 +955,7 @@ public class AiAssistantService {
                     try {
                         Thread.sleep(300);
                     } catch (InterruptedException e) {
-                        e.printStackTrace();
+                        log.error("异常详情", e);
                     }
                     
                     // 2. 直接调用业务服务，不重新识别意图
@@ -967,7 +963,7 @@ public class AiAssistantService {
                     
                     // 3. 发送 action 给前端
                     if (orderData != null) {
-                        System.out.println("发送订单分析 action");
+                        log.debug("发送订单分析 action");
                         java.util.Map<String, Object> actionMap = new java.util.HashMap<>();
                         actionMap.put("action", "analyze_orders");
                         actionMap.put("actionData", orderData);
@@ -990,7 +986,7 @@ public class AiAssistantService {
                 
                 // 特殊处理评论分析和销售分析（绕过规则引擎）
                 if ("analyze_sentiment".equals(intent) || "analyze_sales".equals(intent)) {
-                    System.out.println("执行评论/销售分析操作");
+                    log.debug("执行评论/销售分析操作");
                     
                     // 先检查是否是"第x个"场景，从上下文中获取商品ID
                     Integer analysisIndex = extractIndexFromMessage(request.getMessage());
@@ -1000,7 +996,7 @@ public class AiAssistantService {
                         // 从上下文中获取商品ID
                         resolvedGoodId = getGoodIdFromContextByIndex(request.getUserId(), analysisIndex);
                         if (resolvedGoodId != null) {
-                            System.out.println("第" + analysisIndex + "个 -> 从上下文解析商品ID: " + resolvedGoodId);
+                            log.debug("第" + analysisIndex + "个 -> 从上下文解析商品ID: " + resolvedGoodId);
                         }
                     }
                     
@@ -1026,7 +1022,7 @@ public class AiAssistantService {
                     
                     // 发送 action 给前端
                     if (result != null) {
-                        System.out.println("发送分析结果 action");
+                        log.debug("发送分析结果 action");
                         java.util.Map<String, Object> actionMap = new java.util.HashMap<>();
                         actionMap.put("action", intent);
                         actionMap.put("actionData", result);
@@ -1059,10 +1055,10 @@ public class AiAssistantService {
                         Integer index = extractIndexFromMessage(request.getMessage());
                         if (index != null) {
                             intentResult.getParameters().put("index", index);
-                            System.out.println("从消息中提取索引：" + index);
+                            log.debug("从消息中提取索引：" + index);
                         }
                         
-                        System.out.println("使用 DeepSeek 识别结果：" + intent);
+                        log.debug("使用 DeepSeek 识别结果：" + intent);
                     } else {
                         // 使用规则引擎识别意图
                         ChatRequest businessRequest = new ChatRequest();
@@ -1076,22 +1072,22 @@ public class AiAssistantService {
                         if ("search_goods".equals(intent) && entities instanceof String) {
                             // 搜索场景：将提取的关键词放入参数
                             intentResult.getParameters().put("keyword", entities);
-                            System.out.println("将提取的关键词合并到参数中：" + entities);
+                            log.debug("将提取的关键词合并到参数中：" + entities);
                         } else if ("navigate".equals(intent) && entities instanceof String) {
                             // 导航场景：将提取的页面名称放入参数
                             intentResult.getParameters().put("page", entities);
-                            System.out.println("将提取的导航目标合并到参数中：" + entities);
+                            log.debug("将提取的导航目标合并到参数中：" + entities);
                         } else if ("track_order".equals(intent) && entities instanceof String) {
                             // 订单跟踪场景：将提取的订单号放入参数
                             intentResult.getParameters().put("orderId", entities);
-                            System.out.println("将提取的订单号合并到参数中：" + entities);
+                            log.debug("将提取的订单号合并到参数中：" + entities);
                         } else if (entities instanceof java.util.Map) {
                             // 其他场景：合并 Map 参数
                             java.util.Map<String, Object> entityMap = (java.util.Map<String, Object>) entities;
                             for (java.util.Map.Entry<String, Object> entry : entityMap.entrySet()) {
                                 intentResult.getParameters().put(entry.getKey(), entry.getValue());
                             }
-                            System.out.println("将提取的实体合并到参数中：" + entities);
+                            log.debug("将提取的实体合并到参数中：" + entities);
                         }
                     }
                     
@@ -1101,7 +1097,7 @@ public class AiAssistantService {
                     if (intentResult != null && intentResult.getIntent() != null
                         && !"unknown".equals(intentResult.getIntent().getCode())
                         && !intent.equals(intentResult.getIntent().getCode())) {
-                        System.out.println("规则引擎校正意图: " + intent + " -> " + intentResult.getIntent().getCode());
+                        log.debug("规则引擎校正意图: " + intent + " -> " + intentResult.getIntent().getCode());
                         intent = intentResult.getIntent().getCode();
                     }
                     
@@ -1116,12 +1112,12 @@ public class AiAssistantService {
                         java.util.Map<String, Object> actionData = (java.util.Map<String, Object>) actionDataObj;
                         Boolean needConfirm = (Boolean) actionData.get("needConfirm");
                         
-                        System.out.println("needConfirm值：" + needConfirm);
+                        log.debug("needConfirm值：" + needConfirm);
                         
                         if (Boolean.TRUE.equals(needConfirm)) {
                             // 发送确认推荐消息
                             String category = (String) actionData.get("category");
-                            System.out.println("发送确认推荐消息，品类：" + category);
+                            log.debug("发送确认推荐消息，品类：" + category);
                             
                             java.util.Map<String, Object> confirmMap = new java.util.HashMap<>();
                             confirmMap.put("type", "confirmRecommend");
@@ -1129,24 +1125,24 @@ public class AiAssistantService {
                             confirmMap.put("content", "小皮没有找到对应的商品哦，需要给您推荐性价比高的" + category + "吗？");
                             
                             String confirmJson = cn.hutool.json.JSONUtil.toJsonStr(confirmMap);
-                            System.out.println("确认推荐JSON：" + confirmJson);
+                            log.debug("确认推荐JSON：" + confirmJson);
                             
                             writer.write("event: message\n");
                             writer.write("data: " + confirmJson + "\n\n");
                             writer.flush();
-                            System.out.println("确认推荐消息已发送");
+                            log.debug("确认推荐消息已发送");
                             
                             // 发送 done 标志
                             writer.write("event: done\n");
                             writer.write("data: [DONE]\n\n");
                             writer.flush();
-                            System.out.println("DONE标志已发送");
+                            log.debug("DONE标志已发送");
                             return;
                         }
                     }
                     
                     // 1. 先发送思考消息
-                    System.out.println("发送思考消息");
+                    log.debug("发送思考消息");
                     java.util.Map<String, Object> thinkMap = new java.util.HashMap<>();
                     thinkMap.put("content", "正在为您分析需求，挑选合适的商品...");
                     thinkMap.put("type", "thinking");
@@ -1159,11 +1155,11 @@ public class AiAssistantService {
                     try {
                         Thread.sleep(500);
                     } catch (InterruptedException e) {
-                        e.printStackTrace();
+                        log.error("异常详情", e);
                     }
                     
                     // 2. 分段输出文案（逐字）
-                    System.out.println("输出第 1 段文案");
+                    log.debug("输出第 1 段文案");
                     String category = intent.equals("specific_recommend") ? extractKeyword(request.getMessage()) : "";
                     String copywriting1 = "根据您的要求，我为您精选了以下" + (category.isEmpty() ? "热销" : category) + "商品。";
                     streamTextByChar(copywriting1, writer);
@@ -1210,16 +1206,16 @@ public class AiAssistantService {
                         }
                     }
                     
-                    System.out.println("输出第 2 段文案");
+                    log.debug("输出第 2 段文案");
                     String copywriting2 = "\n\n首推这款商品，销量领先，口碑极佳。";
                     streamTextByChar(copywriting2, writer);
                     
-                    System.out.println("输出第 3 段文案");
+                    log.debug("输出第 3 段文案");
                     String copywriting3 = "\n\n您可以点击下方商品卡片查看详情，或加入购物车。";
                     streamTextByChar(copywriting3, writer);
                     
                     // 3. 发送 action 展示商品卡片
-                    System.out.println("发送商品卡片 action");
+                    log.debug("发送商品卡片 action");
                     java.util.Map<String, Object> actionMap = new java.util.HashMap<>();
                     actionMap.put("action", intent);
                     actionMap.put("actionData", response.getActionData());
@@ -1235,24 +1231,24 @@ public class AiAssistantService {
                         aiReply.append("根据您的要求，我为您精选了以下商品。");
                         java.util.List<Long> recommendGoodIds = new java.util.ArrayList<>();
                         
-                        System.out.println("=== 开始保存上下文 ===");
-                        System.out.println("actionData 类型: " + response.getActionData().getClass().getName());
+                        log.debug("=== 开始保存上下文 ===");
+                        log.debug("actionData 类型: " + response.getActionData().getClass().getName());
                         
                         if (response.getActionData() instanceof java.util.Map) {
                             java.util.Map<String, Object> actionData = (java.util.Map<String, Object>) response.getActionData();
-                            System.out.println("actionData keys: " + actionData.keySet());
+                            log.debug("actionData keys: " + actionData.keySet());
                             
                             // 尝试从 goods 字段获取商品列表
                             Object goodsObj = actionData.get("goods");
-                            System.out.println("goodsObj 是否为 null: " + (goodsObj == null));
+                            log.debug("goodsObj 是否为 null: " + (goodsObj == null));
                             
                             if (goodsObj == null) {
                                 // 尝试从 topGood 和 otherGoods 获取
                                 Object topGood = actionData.get("topGood");
                                 Object otherGoods = actionData.get("otherGoods");
                                 
-                                System.out.println("topGood 是否为 null: " + (topGood == null));
-                                System.out.println("otherGoods 是否为 null: " + (otherGoods == null));
+                                log.debug("topGood 是否为 null: " + (topGood == null));
+                                log.debug("otherGoods 是否为 null: " + (otherGoods == null));
                                 
                                 if (topGood instanceof java.util.Map) {
                                     java.util.Map<String, Object> topGoodMap = (java.util.Map<String, Object>) topGood;
@@ -1263,7 +1259,7 @@ public class AiAssistantService {
                                     if (goodIdObj != null) {
                                         Long id = Long.valueOf(goodIdObj.toString());
                                         recommendGoodIds.add(id);
-                                        System.out.println("从 topGood 获取商品ID: " + id);
+                                        log.debug("从 topGood 获取商品ID: " + id);
                                     }
                                 }
                                 
@@ -1312,9 +1308,9 @@ public class AiAssistantService {
                             aiReply.append("【推荐商品列表】").append(cn.hutool.json.JSONUtil.toJsonStr(recommendGoodIds));
                         }
                         
-                        System.out.println("保存到上下文的 AI 回复: " + aiReply.toString());
+                        log.debug("保存到上下文的 AI 回复: " + aiReply.toString());
                         contextManager.addMessage(request.getUserId(), "assistant", aiReply.toString());
-                        System.out.println("=== 上下文保存完成 ===");
+                        log.debug("=== 上下文保存完成 ===");
                     }
                 } else {
                     // 其他场景：先流式输出 AI 回复文案，再发送 action
@@ -1323,7 +1319,7 @@ public class AiAssistantService {
                     String aiResponse = getAiResponseForIntent(intent, index);
                     streamAiResponse(aiResponse, writer);
                     
-                    System.out.println("发送 action 给前端：" + intent);
+                    log.debug("发送 action 给前端：" + intent);
                     java.util.Map<String, Object> actionMap = new java.util.HashMap<>();
                     actionMap.put("action", intent);
                     actionMap.put("actionData", response.getActionData());
@@ -1337,7 +1333,7 @@ public class AiAssistantService {
                     // response.getMessage() 中包含了 search_goods 场景的"商品ID:X"信息
                     if (request.getUserId() != null && response != null && response.getMessage() != null) {
                         contextManager.addMessage(request.getUserId(), "assistant", response.getMessage());
-                        System.out.println("保存 AI 回复到上下文: " + response.getMessage());
+                        log.debug("保存 AI 回复到上下文: " + response.getMessage());
                     }
                 }
                 } // 闭合 else 块（规则引擎处理）
@@ -1353,11 +1349,11 @@ public class AiAssistantService {
             writer.write("data: [DONE]\n\n");
             writer.flush();
             
-            System.out.println("=== 智能帮助模式完成 ===");
+            log.debug("=== 智能帮助模式完成 ===");
             
         } catch (Exception e) {
-            System.err.println("智能帮助模式异常：" + e.getMessage());
-            e.printStackTrace();
+            log.error("智能帮助模式异常：" + e.getMessage());
+            log.error("异常详情", e);
             try {
                 writer.write("event: error\n");
                 writer.write("data: {\"error\":\"" + e.getMessage() + "\"}\n\n");
@@ -1454,7 +1450,7 @@ public class AiAssistantService {
                 return aiBusinessService.generateSalesReport(goodId, days);
             }
         } catch (Exception e) {
-            System.err.println("执行业务操作失败：" + e.getMessage());
+            log.error("执行业务操作失败：" + e.getMessage());
         }
         return null;
     }
@@ -1573,16 +1569,16 @@ public class AiAssistantService {
      * 使用 LangChain4j 进行流式聊天（支持意图识别和业务执行）
      */
     private void streamWithLangChain4j(ChatRequest request, java.io.PrintWriter writer) throws Exception {
-        System.out.println(">>> 调用 LangChain4j 流式接口...");
+        log.debug(">>> 调用 LangChain4j 流式接口...");
         
         // 1. 使用规则引擎识别意图
         AiIntentResult intentResult = intentEngine.recognizeIntent(request);
-        System.out.println("识别出的用户意图：" + intentResult.getIntent().getCode());
-        System.out.println("提取到的参数：" + intentResult.getParameters());
+        log.debug("识别出的用户意图：" + intentResult.getIntent().getCode());
+        log.debug("提取到的参数：" + intentResult.getParameters());
         
         // 2. 如果是聊天意图，直接使用 DeepSeek 对话
         if (intentResult.getIntent() == AiIntent.CHAT || intentResult.getIntent() == AiIntent.UNKNOWN) {
-            System.out.println(">>> 聊天意图，直接使用 DeepSeek 对话");
+            log.debug(">>> 聊天意图，直接使用 DeepSeek 对话");
             String aiResponse = langChainAiService.chat(request.getUserId(), request.getMessage());
             
             if (aiResponse != null && !aiResponse.isEmpty()) {
@@ -1626,10 +1622,10 @@ public class AiAssistantService {
         }
         
         // 3. 执行业务操作
-        System.out.println("开始执行业务操作：" + intentResult.getIntent().getCode());
+        log.debug("开始执行业务操作：" + intentResult.getIntent().getCode());
         ChatResponse response = aiBusinessService.executeBusiness(intentResult, request.getUserId());
-        System.out.println("业务操作完成，action：" + response.getAction());
-        System.out.println("actionData：" + response.getActionData());
+        log.debug("业务操作完成，action：" + response.getAction());
+        log.debug("actionData：" + response.getActionData());
         
         // 4. 特殊处理推荐和搜索场景
         if (("recommend_goods".equals(intentResult.getIntent().getCode()) || "specific_recommend".equals(intentResult.getIntent().getCode()) || "search_goods".equals(intentResult.getIntent().getCode())) 
@@ -1753,10 +1749,10 @@ public class AiAssistantService {
             writer.write("event: action\n");
             writer.write("data: " + actionJson + "\n\n");
             writer.flush();
-            System.out.println("发送商品卡片 action");
+            log.debug("发送商品卡片 action");
         } else if ("analyze_orders".equals(intentResult.getIntent().getCode()) && response != null && response.getActionData() != null) {
             // 订单分析场景：发送思考消息 + action 事件
-            System.out.println("处理订单分析场景");
+            log.debug("处理订单分析场景");
             
             // 1. 先发送思考消息
             java.util.Map<String, Object> thinkMap = new java.util.HashMap<>();
@@ -1804,10 +1800,10 @@ public class AiAssistantService {
             writer.write("event: action\n");
             writer.write("data: " + actionJson + "\n\n");
             writer.flush();
-            System.out.println("发送订单分析 action");
+            log.debug("发送订单分析 action");
         } else if ("track_order".equals(intentResult.getIntent().getCode()) && response != null && response.getActionData() != null) {
             // 订单跟踪场景：发送思考消息 + action 事件（包含分页字段）
-            System.out.println("处理订单跟踪场景");
+            log.debug("处理订单跟踪场景");
             
             // 1. 先发送思考消息
             java.util.Map<String, Object> thinkMap = new java.util.HashMap<>();
@@ -1857,7 +1853,7 @@ public class AiAssistantService {
             writer.write("event: action\n");
             writer.write("data: " + trackActionJson + "\n\n");
             writer.flush();
-            System.out.println("发送订单跟踪 action");
+            log.debug("发送订单跟踪 action");
         } else {
             // 其他业务操作，直接发送响应
             java.util.Map<String, Object> map = new java.util.HashMap<>();
@@ -1872,19 +1868,15 @@ public class AiAssistantService {
         writer.write("event: done\n");
         writer.write("data: [DONE]\n\n");
         writer.flush();
-        System.out.println("<<< 发送 [DONE] 标志");
+        log.debug("<<< 发送 [DONE] 标志");
     }
     
     /**
-     * 使用百度文心一言进行流式聊天
+     * 使用 DeepSeek 进行流式聊天
      */
     private void streamWithBaidu(ChatRequest request, java.io.PrintWriter writer) throws Exception {
-        System.out.println(">>> 调用百度文心一言流式接口...");
+        log.debug(">>> 调用 DeepSeek 流式接口...");
         
-        // 获取百度 API 的 accessToken
-        String accessToken = getBaiduAccessToken();
-        
-        // 构建请求体
         cn.hutool.json.JSONObject requestBody = new cn.hutool.json.JSONObject();
         cn.hutool.json.JSONArray messages = new cn.hutool.json.JSONArray();
         
@@ -1900,16 +1892,16 @@ public class AiAssistantService {
         userMsg.put("content", request.getMessage());
         messages.add(userMsg);
         
-        requestBody.put("model", "ernie-3.5-8k");
+        requestBody.put("model", "deepseek-chat");
         requestBody.put("messages", messages);
         requestBody.put("stream", true);
         
-        // 调用百度流式 API
-        java.net.URL url = new java.net.URL("https://qianfan.baidubce.com/v2/chat/completions");
+        // 调用 DeepSeek 流式 API
+        java.net.URL url = new java.net.URL("https://api.deepseek.com/v1/chat/completions");
         java.net.HttpURLConnection connection = (java.net.HttpURLConnection) url.openConnection();
         connection.setRequestMethod("POST");
         connection.setRequestProperty("Content-Type", "application/json");
-        connection.setRequestProperty("Authorization", "Bearer " + accessToken);
+        connection.setRequestProperty("Authorization", "Bearer " + deepseekApiKey);
         connection.setDoOutput(true);
         connection.setChunkedStreamingMode(0);
         connection.setConnectTimeout(10000);
@@ -1922,7 +1914,7 @@ public class AiAssistantService {
             os.flush();
         }
         
-        System.out.println("百度 API 响应码：" + connection.getResponseCode());
+        log.debug("DeepSeek API 响应码：" + connection.getResponseCode());
         
         // 读取流式响应
         try (java.io.BufferedReader reader = new java.io.BufferedReader(new java.io.InputStreamReader(connection.getInputStream(), "UTF-8"))) {
@@ -1950,7 +1942,6 @@ public class AiAssistantService {
                             String content = delta.getStr("content", "");
                             
                             if (content != null && !content.isEmpty()) {
-                                // 使用与原来相同的格式：推送 JSON 对象，包含 content 字段
                                 java.util.Map<String, Object> map = new java.util.HashMap<>();
                                 map.put("content", content);
                                 String jsonStr = cn.hutool.json.JSONUtil.toJsonStr(map);
@@ -1964,39 +1955,19 @@ public class AiAssistantService {
                         }
                     }
                 } catch (Exception e) {
-                    System.err.println("解析响应失败：" + e.getMessage());
+                    log.error("解析响应失败：" + e.getMessage());
                 }
             }
         }
         
-        System.out.println("\n<<< 百度文心一言流式处理完成");
+        log.debug("\n<<< DeepSeek 流式处理完成");
     }
     
     /**
-     * 获取百度 API 的访问令牌
+     * 获取 DeepSeek API 密钥
      */
     private String getBaiduAccessToken() {
-        try {
-            // 调用百度 OAuth 2.0 接口获取 access_token
-            String tokenUrl = "https://aip.baidubce.com/oauth/2.0/token?grant_type=client_credentials&client_id=" + 
-                             baiduApiKey + "&client_secret=" + baiduSecretKey;
-            
-            String responseBody = cn.hutool.http.HttpUtil.createGet(tokenUrl).execute().body();
-            cn.hutool.json.JSONObject tokenResponse = cn.hutool.json.JSONUtil.parseObj(responseBody);
-            String accessToken = tokenResponse.getStr("access_token");
-            
-            if (accessToken == null || accessToken.isEmpty()) {
-                throw new RuntimeException("获取百度 API 访问令牌失败：" + tokenResponse.toString());
-            }
-            
-            System.out.println("成功获取百度 API 访问令牌");
-            return accessToken;
-            
-        } catch (Exception e) {
-            System.err.println("获取百度 API 访问令牌失败：" + e.getMessage());
-            e.printStackTrace();
-            throw new RuntimeException("获取百度 API 访问令牌失败", e);
-        }
+        return deepseekApiKey;
     }
     
     /**
@@ -2004,12 +1975,12 @@ public class AiAssistantService {
      */
     private void executeBusinessOperationWithStreaming(String intent, ChatRequest request, java.io.PrintWriter writer) {
         try {
-            System.out.println("开始执行业务操作（流式版本）：" + intent);
+            log.debug("开始执行业务操作（流式版本）：" + intent);
             
             // 使用规则引擎识别意图并提取参数
             AiIntentResult intentResult = intentEngine.recognizeIntent(request);
             String actualIntent = intentResult.getIntent().getCode();
-            System.out.println("识别到的意图：" + actualIntent);
+            log.debug("识别到的意图：" + actualIntent);
             
             // 执行业务操作
             ChatResponse response = aiBusinessService.executeBusiness(intentResult, request.getUserId());
@@ -2022,12 +1993,12 @@ public class AiAssistantService {
                     java.util.Map<String, Object> actionData = (java.util.Map<String, Object>) actionDataObj;
                     Boolean needConfirm = (Boolean) actionData.get("needConfirm");
                     
-                    System.out.println("needConfirm值：" + needConfirm);
+                    log.debug("needConfirm值：" + needConfirm);
                     
                     if (Boolean.TRUE.equals(needConfirm)) {
                         // 发送确认推荐消息
                         String category = (String) actionData.get("category");
-                        System.out.println("发送确认推荐消息，品类：" + category);
+                        log.debug("发送确认推荐消息，品类：" + category);
                         
                         java.util.Map<String, Object> confirmMap = new java.util.HashMap<>();
                         confirmMap.put("type", "confirmRecommend");
@@ -2035,24 +2006,24 @@ public class AiAssistantService {
                         confirmMap.put("content", "小皮没有找到对应的商品哦，需要给您推荐性价比高的" + category + "吗？");
                         
                         String confirmJson = cn.hutool.json.JSONUtil.toJsonStr(confirmMap);
-                        System.out.println("确认推荐JSON：" + confirmJson);
+                        log.debug("确认推荐JSON：" + confirmJson);
                         
                         writer.write("event: message\n");
                         writer.write("data: " + confirmJson + "\n\n");
                         writer.flush();
-                        System.out.println("确认推荐消息已发送");
+                        log.debug("确认推荐消息已发送");
                         
                         // 发送 done 标志
                         writer.write("event: done\n");
                         writer.write("data: [DONE]\n\n");
                         writer.flush();
-                        System.out.println("DONE标志已发送");
+                        log.debug("DONE标志已发送");
                         return;
                     }
                 }
                 
                 // 1. 先发送思考消息
-                System.out.println("发送思考消息");
+                log.debug("发送思考消息");
                 java.util.Map<String, Object> thinkMap = new java.util.HashMap<>();
                 thinkMap.put("content", "正在为您分析需求，挑选合适的商品...");
                 thinkMap.put("type", "thinking");
@@ -2067,7 +2038,7 @@ public class AiAssistantService {
                 // 3. 逐段输出文案
                 for (int p = 0; p < paragraphs.length; p++) {
                     String paragraph = paragraphs[p];
-                    System.out.println("输出第 " + (p + 1) + " 段文案：" + paragraph);
+                    log.debug("输出第 " + (p + 1) + " 段文案：" + paragraph);
                     
                     char[] chars = paragraph.toCharArray();
                     StringBuilder buffer = new StringBuilder();
@@ -2099,7 +2070,7 @@ public class AiAssistantService {
                 }
                 
                 // 4. 然后发送商品卡片
-                System.out.println("发送商品卡片 action");
+                log.debug("发送商品卡片 action");
                 java.util.Map<String, Object> actionMap = new java.util.HashMap<>();
                 actionMap.put("action", response.getAction());
                 actionMap.put("actionData", response.getActionData());
@@ -2112,7 +2083,7 @@ public class AiAssistantService {
             } else {
                 // 其他场景：正常发送 action
                 if (response != null && response.getAction() != null) {
-                    System.out.println("发送 action 给前端：" + response.getAction());
+                    log.debug("发送 action 给前端：" + response.getAction());
                     java.util.Map<String, Object> actionMap = new java.util.HashMap<>();
                     actionMap.put("action", response.getAction());
                     actionMap.put("actionData", response.getActionData());
@@ -2124,7 +2095,7 @@ public class AiAssistantService {
                 }
                 
                 // 流式输出 AI 回复
-                System.out.println("开始流式输出业务操作结果");
+                log.debug("开始流式输出业务操作结果");
                 
                 if (response != null && response.getMessage() != null) {
                     String aiResponse = response.getMessage();
@@ -2173,11 +2144,11 @@ public class AiAssistantService {
             writer.write("data: [DONE]\n\n");
             writer.flush();
             
-            System.out.println("业务操作执行完成");
+            log.debug("业务操作执行完成");
             
         } catch (Exception e) {
-            System.err.println("执行业务操作失败：" + e.getMessage());
-            e.printStackTrace();
+            log.error("执行业务操作失败：" + e.getMessage());
+            log.error("异常详情", e);
             try {
                 writer.write("event: error\n");
                 writer.write("data: {\"error\":\"" + e.getMessage() + "\"}\n\n");
@@ -2348,7 +2319,7 @@ public class AiAssistantService {
     private String recognizeIntentWithDeepSeek(String message) {
         try {
             // 构建 prompt，包含所有可能的意图选项
-            System.out.println("开始构建意图识别 prompt（DeepSeek）");
+            log.debug("开始构建意图识别 prompt（DeepSeek）");
             String prompt = "你是一个电商智能助手，需要准确识别用户的意图。请从以下选项中选择最符合用户意图的操作：\n\n" +
                             "【意图选项】\n" +
                             "1. search_goods（搜索商品）- 当用户想要搜索、查找、寻找某类商品时（**主动搜索行为**）\n" +
@@ -2488,16 +2459,16 @@ public class AiAssistantService {
                             "【用户消息】\n" +
                             "" + message + "\n\n" +
                             "请只返回一个英文单词（search_goods、add_to_cart、batch_add_cart、query_order、navigate、logout、recommend_goods、specific_recommend、quick_order、track_order、analyze_orders、analyze_sentiment、analyze_sales、view_good_detail、chat 或 unknown），不要返回任何其他内容。";
-            System.out.println("发送了prompt");
+            log.debug("发送了prompt");
             
             // 获取 DeepSeek AI 响应
-            System.out.println("发送意图识别请求到 DeepSeek");
+            log.debug("发送意图识别请求到 DeepSeek");
             String aiResponse = getDeepSeekAiResponse(prompt);
-            System.out.println("DeepSeek 返回的意图识别结果：" + aiResponse);
+            log.debug("DeepSeek 返回的意图识别结果：" + aiResponse);
             
             // 处理 AI 响应
             aiResponse = aiResponse.trim();
-            System.out.println("处理后的意图识别结果：" + aiResponse);
+            log.debug("处理后的意图识别结果：" + aiResponse);
             
             // 验证响应（支持大小写不敏感）
             java.util.Set<String> validIntents = java.util.Collections.unmodifiableSet(
@@ -2518,22 +2489,22 @@ public class AiAssistantService {
             }
             
             if (matchedIntent != null) {
-                System.out.println("意图识别结果有效，返回：" + matchedIntent);
+                log.debug("意图识别结果有效，返回：" + matchedIntent);
                 return matchedIntent;
             } else {
-                System.out.println("意图识别结果无效，降级到传统意图识别");
+                log.debug("意图识别结果无效，降级到传统意图识别");
                 // 降级到传统意图识别
                 String traditionalIntent = recognizeIntent(message);
-                System.out.println("传统意图识别结果：" + traditionalIntent);
+                log.debug("传统意图识别结果：" + traditionalIntent);
                 return traditionalIntent;
             }
         } catch (Exception e) {
-            System.err.println("DeepSeek 意图识别失败：" + e.getMessage());
-            e.printStackTrace();
+            log.error("DeepSeek 意图识别失败：" + e.getMessage());
+            log.error("异常详情", e);
             // 降级到传统意图识别
-            System.out.println("DeepSeek 意图识别失败，降级到传统意图识别");
+            log.debug("DeepSeek 意图识别失败，降级到传统意图识别");
             String traditionalIntent = recognizeIntent(message);
-            System.out.println("传统意图识别结果：" + traditionalIntent);
+            log.debug("传统意图识别结果：" + traditionalIntent);
             return traditionalIntent;
         }
     }
@@ -2549,26 +2520,26 @@ public class AiAssistantService {
         java.util.regex.Pattern indexPattern = java.util.regex.Pattern.compile("^第([\\d一二三四五六七八九十]+)[款个]$");
         java.util.regex.Matcher indexMatcher = indexPattern.matcher(message);
         if (indexMatcher.find()) {
-            System.out.println("上下文识别：用户选择第 " + indexMatcher.group(1) + " 个商品，意图为查看商品详情");
+            log.debug("上下文识别：用户选择第 " + indexMatcher.group(1) + " 个商品，意图为查看商品详情");
             return "view_good_detail";
         }
         
         // 场2：用户输入"加入购物车"、"加购"等，但没有指定商品
         if (message.matches(".*(加入.*购物车|加购|放入购物车).*") && 
             !message.matches(".*第[\\d一二三四五六七八九十]+[款个].*")) {
-            System.out.println("上下文识别：用户要求加入购物车");
+            log.debug("上下文识别：用户要求加入购物车");
             return "add_to_cart";
         }
         
         // 场景3：用户输入"详情"、"看看"、"看一下"等简短词
         if (message.matches("^(详情|看看|看一下|看看详情|查看详情)$")) {
-            System.out.println("上下文识别：用户要求查看详情");
+            log.debug("上下文识别：用户要求查看详情");
             return "view_good_detail";
         }
         
         // 场景4：用户输入"买这个"、"要这个"、"就要这个"等
         if (message.matches(".*(买这个|要这个|就要这个|这个我要).*")) {
-            System.out.println("上下文识别：用户要求购买");
+            log.debug("上下文识别：用户要求购买");
             return "add_to_cart";
         }
         
@@ -3011,15 +2982,15 @@ public class AiAssistantService {
      */
     private String getDeepSeekAiResponse(String prompt) throws Exception {
         try {
-            System.out.println(">>> 调用 DeepSeek API 获取响应...");
+            log.debug(">>> 调用 DeepSeek API 获取响应...");
             
             // 使用 LangChain4j 直接生成响应
             String response = langChainAiService.chat(null, prompt);
             
-            System.out.println("<<< DeepSeek API 响应成功");
+            log.debug("<<< DeepSeek API 响应成功");
             return response;
         } catch (Exception e) {
-            System.err.println("获取 DeepSeek AI 响应失败：" + e.getMessage());
+            log.error("获取 DeepSeek AI 响应失败：" + e.getMessage());
             throw e;
         }
     }

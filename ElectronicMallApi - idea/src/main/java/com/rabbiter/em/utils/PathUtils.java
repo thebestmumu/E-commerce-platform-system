@@ -1,8 +1,11 @@
 package com.rabbiter.em.utils;
 
+import lombok.extern.slf4j.Slf4j;
+
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 
+@Slf4j
 public class PathUtils {
     public static String getClassLoadRootPath() {
         String path = "";
@@ -22,7 +25,7 @@ public class PathUtils {
                 path = prePath.substring(1, prePath.length() - 1);
             }
         } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
+            log.error("解码路径失败", e);
         }
         return path;
     }

@@ -255,6 +255,28 @@ public class OrderService extends ServiceImpl<OrderMapper, Order> {
         return orderMapper.selectByOrderNo(orderNo);
     }
 
+    public Order getOrderByNo(String orderNo) {
+        LambdaQueryWrapper<Order> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(Order::getOrderNo, orderNo);
+        return getOne(wrapper);
+    }
+
+    @Transactional
+    public boolean cancelOrder(String orderNo) {
+        Order order = getOrderByNo(orderNo);
+        if (order == null) {
+            return false;
+        }
+        String state = order.getState();
+        if ("待支付".equals(state) || "已支付".equals(state)) {
+            LambdaUpdateWrapper<Order> wrapper = new LambdaUpdateWrapper<>();
+            wrapper.eq(Order::getOrderNo, orderNo)
+                    .set(Order::getState, "已取消");
+            return update(wrapper);
+        }
+        return false;
+    }
+
     public void delivery(String orderNo, String deliveryAddress, String expressCompany, String expressNo) {
         LambdaUpdateWrapper<Order> orderLambdaUpdateWrapper = new LambdaUpdateWrapper<>();
         orderLambdaUpdateWrapper.eq(Order::getOrderNo, orderNo)

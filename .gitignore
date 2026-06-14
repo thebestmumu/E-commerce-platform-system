@@ -1,47 +1,142 @@
-# Maven build output
+# ==================== 构建输出 ====================
+# Maven
 **/target/
+**/pom.xml.tag
+**/pom.xml.releaseBackup
+**/pom.xml.versionsBackup
+**/pom.xml.next
+**/release.properties
+**/dependency-reduced-pom.xml
+**/buildNumber.properties
+**/mvnw
+**/mvnw.cmd
+**/.mvn/
+
+# Gradle
+**/.gradle/
+**/build/
+**/gradle/
 
 # Node.js
 **/node_modules/
 **/dist/
+**/npm-debug.log*
+**/yarn-debug.log*
+**/yarn-error.log*
 **/.npm/
+**/.yarn/
+**/.pnp/
+**/.pnp.js
+**/.eslintcache
 
-# IDE
+# ==================== IDE ====================
+# IntelliJ IDEA
 **/.idea/
 **/*.iml
+**/*.iws
+**/*.ipr
+
+# VS Code
 **/.vscode/
+**/*.code-workspace
 
-# OS files
+# Eclipse
+**/.settings/
+**/.classpath
+**/.project
+
+# NetBeans
+**/nbproject/
+**/nbbuild/
+**/dist/
+**/nbdist/
+
+# ==================== OS 文件 ====================
+# macOS
 **/.DS_Store
+**/.AppleDouble
+**/.LSOverride
+**/._*
+
+# Windows
 **/Thumbs.db
+**/ehthumbs.db
+**/Desktop.ini
+**/$RECYCLE.BIN/
 
-# Logs
+# Linux
+**/*~
+
+# ==================== 日志文件 ====================
 **/*.log
+**/logs/
+**/nohup.out
 
-# Environment files
+# ==================== 环境文件和密钥 ====================
+# 环境变量
 **/.env
 **/.env.local
+**/.env.*.local
 
-# 论文目录
-论文/
-
-# AI辅助临时目录
-.claude/
-
-# 根目录下的临时文档、脚本（非项目源码）
-/*.md
-/*.sql
-/*.py
-/*.html
-
-# 私钥文件 - 禁止提交
+# 证书和密钥
 *.pem
 *.key
 *.p8
 *.pub
+*.p12
+*.jks
+*.keystore
 
-# 临时文件
-~/
-～/
-test_api.sh
-启用 LangChain4j.sh
+# 数据库文件
+*.db
+*.sqlite
+*.sqlite3
+
+# ==================== 临时文件 ====================
+# 临时文档
+*.tmp
+*.bak
+*.swp
+*.swo
+*~
+
+# Claude AI
+.claude/
+.claude/**
+
+# 根目录下的临时文档和脚本（非项目源码）
+/*.md
+/*.sql
+/*.py
+/*.html
+/*.sh
+
+# 允许 README.md
+!README.md
+!ElectronicMallApi - idea/README.md
+!ElectronicMallVue/README.md
+
+# ==================== 敏感目录 ====================
+# 头像上传目录
+avatar/
+**/avatar/
+
+# 文件上传目录
+file/
+**/file/
+
+# 论文目录（如果存在）
+论文/
+
+# ==================== 打包文件 ====================
+*.jar
+*.war
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# ==================== 系统缓存 ====================
+**/.cache/
+**/.parcel-cache/
+**/.sass-cache/

@@ -15,7 +15,7 @@ import com.rabbiter.em.entity.GoodStandard;
 import com.rabbiter.em.entity.dto.GoodDTO;
 import com.rabbiter.em.exception.ServiceException;
 import com.rabbiter.em.mapper.GoodMapper;
-
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.stereotype.Service;
@@ -35,6 +35,7 @@ import java.util.regex.Pattern;
 import static com.rabbiter.em.constants.RedisConstants.GOOD_TOKEN_KEY;
 import static com.rabbiter.em.constants.RedisConstants.GOOD_TOKEN_TTL;
 
+@Slf4j
 @Service
 public class GoodService extends ServiceImpl<GoodMapper, Good> {
 
@@ -104,7 +105,7 @@ public class GoodService extends ServiceImpl<GoodMapper, Good> {
     }
     //保存商品信息
     public Long saveOrUpdateGood(Good good) {
-        System.out.println(good);
+        log.debug("保存或更新商品信息: {}", good);
         if(good.getId()==null){
             DateTimeFormatter df = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
             good.setCreateTime(df.format(LocalDateTime.now()));
@@ -364,5 +365,39 @@ public class GoodService extends ServiceImpl<GoodMapper, Good> {
         }
         
         return null;
+    }
+
+    public List<Good> searchByPriceRange(String keyword, Double minPrice, Double maxPrice) {
+        LambdaQueryWrapper<Good> query = Wrappers.<Good>lambdaQuery();
+        query.eq(Good::getIsDelete, false);
+
+        if (keyword != null && !keyword.isEmpty()) {
+            query.and(w -> w.like(Good::getName, keyword).or().like(Good::getDescription, keyword));
+        }
+
+        List<Good> allGoods = list(query);
+        List<Good> filtered = new ArrayList<>();
+
+        for (Good good : allGoods) {
+            BigDecimal minGoodPrice = getMinPrice(good.getId());
+            if (minGoodPrice != null) {
+                double price = minGoodPrice.doubleValue();
+                boolean inRange = true;
+                if (minPrice != null) inRange = inRange && price >= minPrice;
+                if (maxPrice != null) inRange = inRange && price <= maxPrice;
+                if (inRange) {
+                    good.setPrice(minGoodPrice);
+                    filtered.add(good);
+                }
+            }
+        }
+
+        filtered.sort((a, b) -> {
+            BigDecimal pa = a.getPrice() != null ? a.getPrice() : BigDecimal.ZERO;
+            BigDecimal pb = b.getPrice() != null ? b.getPrice() : BigDecimal.ZERO;
+            return pa.compareTo(pb);
+        });
+
+        return filtered;
     }
 }

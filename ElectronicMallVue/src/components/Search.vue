@@ -20,6 +20,10 @@
         <span class="cart-text">购物车</span>
         <span v-if="cartCount > 0" class="cart-badge">{{ cartCount > 99 ? '99+' : cartCount }}</span>
       </div>
+      <div class="search-nav-item" @click="goToTickets">
+        <span class="nav-item-icon">📋</span>
+        <span class="nav-item-text">我的工单</span>
+      </div>
     </div>
     <div class="search-hot-words">
       <span class="hot-label">热搜：</span>
@@ -52,6 +56,9 @@ export default {
   methods: {
     goToCart() {
       this.$router.push('/cart')
+    },
+    goToTickets() {
+      this.$router.push('/myTickets')
     },
     loadCartCount() {
       const userStr = localStorage.getItem('user')
@@ -178,6 +185,33 @@ export default {
   min-width: 16px;
   text-align: center;
   font-weight: 600;
+}
+
+.search-nav-item {
+  position: relative;
+  background: rgba(255, 255, 255, 0.2);
+  padding: 8px 16px;
+  border-radius: 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: white;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.search-nav-item:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.nav-item-icon {
+  font-size: 18px;
+}
+
+.nav-item-text {
+  font-size: 14px;
+  font-weight: 500;
 }
 
 .search-hot-words {

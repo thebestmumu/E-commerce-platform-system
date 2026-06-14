@@ -152,6 +152,10 @@
                                 <span class="entry-icon">📦</span>
                                 <span>我的订单</span>
                             </div>
+                            <div class="quick-entry-item" @click="$router.push('/myTickets')">
+                                <span class="entry-icon">📋</span>
+                                <span>我的工单</span>
+                            </div>
                             <div class="quick-entry-item" @click="$router.push('/person')">
                                 <span class="entry-icon">👤</span>
                                 <span>个人中心</span>

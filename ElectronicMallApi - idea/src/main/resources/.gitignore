@@ -1,0 +1,5 @@
+# 本地配置文件（包含敏感信息，禁止提交）
+application.yml
+application-local.yml
+application-dev.yml
+application-prod.yml

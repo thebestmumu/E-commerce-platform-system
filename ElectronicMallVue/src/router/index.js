@@ -23,6 +23,7 @@ const routes = [
       {path: 'pay-waiting', name: 'payWaiting', meta: {title:'等待支付',requireLogin: true}, component: () => import('../views/front/order/PayWaiting.vue'),},
       {path: 'pay-success', name: 'paySuccess', meta: {title:'支付成功',requireLogin: false}, component: () => import('../views/front/order/PaySuccess.vue'),},
       {path: 'orderList', name: 'orderList', meta: {title:'我的订单',requireLogin: true}, component: () => import('../views/front/order/OrderList.vue'),},
+      {path: 'myTickets', name: 'myTickets', meta: {title:'我的工单',requireLogin: true}, component: () => import('../views/front/ticket/MyTickets.vue'),},
 
     ]
   },
@@ -57,6 +58,66 @@ const routes = [
       requireAuth: false,
     },
     component: () => import(/* webpackChunkName: "about" */ '../views/Login.vue')
+  },
+  {
+    path: '/service-login',
+    name: 'serviceLogin',
+    meta: {
+      title: '客服登录',
+      requireAuth: false,
+    },
+    component: () => import(/* webpackChunkName: "about" */ '../views/ServiceLogin.vue')
+  },
+  {
+    path: '/service',
+    name: 'service',
+    meta: {
+      title: '客服系统',
+      requireAuth: false,  // 不使用 requireAuth，因为那是给普通用户和 admin 的
+    },
+    component: () => import(/* webpackChunkName: "about" */ '../views/Service.vue'),
+    children: [
+      {
+        path: 'ticket',
+        name: 'serviceTicket',
+        meta: {
+          title: '工单处理',
+          requireAuth: false,  // 客服系统有自己的验证逻辑
+          requireService: true
+        },
+        component: () => import(/* webpackChunkName: "about" */ '../views/ServiceTicket.vue')
+      },
+      {
+        path: 'chat',
+        name: 'serviceChat',
+        meta: {
+          title: '在线客服',
+          requireAuth: false,
+          requireService: true
+        },
+        component: () => import(/* webpackChunkName: "about" */ '../views/ServiceChat.vue')
+      }
+    ]
+  },
+  {
+    path: '/user-chat',
+    name: 'userChat',
+    meta: {
+      title: '在线客服',
+      requireAuth: false,
+      requireUser: true
+    },
+    component: () => import(/* webpackChunkName: "about" */ '../views/UserChat.vue')
+  },
+  {
+    path: '/create-ticket',
+    name: 'createTicket',
+    meta: {
+      title: '创建工单',
+      requireAuth: false,
+      requireUser: true
+    },
+    component: () => import(/* webpackChunkName: "about" */ '../views/CreateTicket.vue')
   },
   {
     path: '/register',
@@ -150,6 +211,26 @@ router.beforeEach((to, from, next) => {
         return;
       }
     }
+    
+    // 检查是否需要客服权限
+    if(to.meta.requireService===true){
+      const serviceUserStr = localStorage.getItem('serviceUser')
+      if(!serviceUserStr){
+        next('/service-login');
+        return;
+      }
+      try {
+        const serviceUser = JSON.parse(serviceUserStr)
+        if(!serviceUser.userId || serviceUser.role !== 'service'){
+          next('/service-login');
+          return;
+        }
+      } catch(e) {
+        next('/service-login');
+        return;
+      }
+    }
+    
     if (to.meta.title) {
       document.title = to.meta.title
     } else {

@@ -6,6 +6,7 @@ import com.rabbiter.em.common.Result;
 import com.rabbiter.em.entity.AuthorityType;
 import com.rabbiter.em.entity.Avatar;
 import com.rabbiter.em.service.AvatarService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -14,6 +15,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.util.HashMap;
 import java.util.List;
 
+@Slf4j
 @RestController
 @RequestMapping("/avatar")
 public class AvatarController {
@@ -23,7 +25,7 @@ public class AvatarController {
     //上传头像
     @PostMapping()
     public Result uploadAvatar(@RequestParam MultipartFile file){
-        System.out.println("uploadAvatar====>");
+        log.debug("接收到头像上传请求");
         String url = avatarService.upload(file);
         return Result.success(url);
     }

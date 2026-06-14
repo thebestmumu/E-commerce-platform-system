@@ -12,6 +12,7 @@ import com.rabbiter.em.entity.MyFile;
 import com.rabbiter.em.exception.ServiceException;
 import com.rabbiter.em.mapper.FileMapper;
 import com.sun.xml.fastinfoset.stax.events.Util;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -25,6 +26,7 @@ import java.net.URLEncoder;
 import java.util.List;
 import java.util.UUID;
 
+@Slf4j
 @Service
 public class FileService extends ServiceImpl<FileMapper, MyFile> {
     @Resource
@@ -45,7 +47,7 @@ public class FileService extends ServiceImpl<FileMapper, MyFile> {
         try {
             inputStream = uploadFile.getInputStream();
         } catch (IOException e) {
-            e.printStackTrace();
+            log.error("读取上传文件输入流失败", e);
         }
         String md5 = SecureUtil.md5(inputStream);
         QueryWrapper<MyFile> queryWrapper = new QueryWrapper<>();
@@ -62,7 +64,7 @@ public class FileService extends ServiceImpl<FileMapper, MyFile> {
                 folder.mkdir();
             }
             String folderPath = folder.getAbsolutePath()+"/";   //文件存储文件夹的位置
-            System.out.println("文件存储地址"+folderPath);
+            log.debug("文件存储地址：{}", folderPath);
             //将文件保存为UUID的名字，通过uuid生成url
             String uuid = UUID.randomUUID().toString().replace("-", "").toLowerCase();
             String finalFileName = uuid+"."+type;
@@ -70,7 +72,7 @@ public class FileService extends ServiceImpl<FileMapper, MyFile> {
             try {
                 uploadFile.transferTo(targetFile);
             } catch (IOException e) {
-                e.printStackTrace();
+                log.error("文件保存失败：{}", finalFileName, e);
             }
             url = "/file/"+finalFileName;
             myFile.setUrl(url);
@@ -78,7 +80,7 @@ public class FileService extends ServiceImpl<FileMapper, MyFile> {
         myFile.setMd5(md5);
 
         fileMapper.insert(myFile);
-        System.out.println("文件"+originalFilename+" "+url);
+        log.debug("文件上传成功：{} -> {}", originalFilename, url);
         return url;
     }
 
@@ -106,7 +108,7 @@ public class FileService extends ServiceImpl<FileMapper, MyFile> {
             os.flush();
             os.close();
         } catch (IOException e) {
-            e.printStackTrace();
+            log.error("文件下载失败：{}", fileName, e);
         }
     }
     

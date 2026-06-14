@@ -47,6 +47,13 @@
               智能帮助
             </button>
             <button 
+              :class="['mode-btn', { active: currentMode === 'customer' }]"
+              @click="switchMode('customer')"
+              @mousedown.stop
+            >
+              智能客服
+            </button>
+            <button 
               :class="['mode-btn', { active: currentMode === 'purchase' }]"
               @click="switchMode('purchase')"
               @mousedown.stop
@@ -126,13 +133,13 @@
             <!-- 聊天消息列表 -->
             <div class="ai-chat-messages" ref="messagesContainer">
               <!-- 问候语浮动按钮 - 智能帮助模式下显示 -->
-              <div v-if="currentMode === 'help' && !showGreetingCard" class="greeting-float-btn" @click="showGreetingCard = true">
+              <div v-if="(currentMode === 'help' || currentMode === 'customer') && !showGreetingCard" class="greeting-float-btn" @click="showGreetingCard = true">
                 <span class="greeting-icon">🤖</span>
                 <span class="greeting-text">小皮助手</span>
               </div>
               
               <!-- 问候语卡片 - 智能帮助模式下可展开 -->
-              <div v-if="currentMode === 'help' && showGreetingCard" class="greeting-card-wrapper">
+              <div v-if="(currentMode === 'help' || currentMode === 'customer') && showGreetingCard" class="greeting-card-wrapper">
                 <div class="greeting-card-header">
                   <h3>👋 你好，我是小皮助手</h3>
                   <button class="greeting-close-btn" @click="showGreetingCard = false">×</button>
@@ -329,6 +336,90 @@
                     </div>
                   </div>
                 </div>
+                
+                <!-- 工单信息卡片 - 转人工客服时显示（旧版，保留兼容） -->
+                <div v-if="message.ticketInfo" class="ticket-info-card">
+                  <div class="ticket-icon"></div>
+                  <div class="ticket-content">
+                    <div class="ticket-text">
+                      <div class="ticket-title">工单已创建</div>
+                      <div class="ticket-no" v-if="message.ticketInfo.ticketNo">
+                        工单编号：<strong>{{ message.ticketInfo.ticketNo }}</strong>
+                      </div>
+                      <div class="ticket-desc">{{ message.ticketInfo.message }}</div>
+                    </div>
+                    
+                    <!-- 问题描述输入框 -->
+                    <div class="ticket-description-input">
+                      <textarea 
+                        v-model="message.ticketInfo.description" 
+                        placeholder="请简要描述您的问题（选填）..."
+                        rows="3"
+                        class="description-textarea"
+                      ></textarea>
+                    </div>
+                    
+                    <!-- 操作按钮 -->
+                    <div class="ticket-actions">
+                      <button 
+                        class="ticket-btn enter-chat"
+                        @click="enterCustomerService(message.ticketInfo)"
+                      >
+                        💬 进入在线客服
+                      </button>
+                    </div>
+                    
+                    <!-- 其他联系渠道 -->
+                    <div class="ticket-channels" v-if="message.ticketInfo.channels && message.ticketInfo.channels.length > 0">
+                      <div v-for="(channel, idx) in message.ticketInfo.channels" :key="idx" class="channel-item">
+                        <span class="channel-label">{{ channel.label }}</span>
+                        <span class="channel-desc">{{ channel.desc }}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <!-- 转人工客服卡片 - 新版（类似推荐商品确认卡片） -->
+                <div v-if="message.type === 'transferToHuman'" class="transfer-human-card">
+                  <div class="transfer-icon"></div>
+                  <div class="transfer-content">
+                    <div class="transfer-text">
+                      <div class="transfer-title">工单已创建</div>
+                      <div class="transfer-no" v-if="message.ticketNo">
+                        工单编号：<strong>{{ message.ticketNo }}</strong>
+                      </div>
+                      <div class="transfer-desc">{{ message.message }}</div>
+                    </div>
+                    
+                    <!-- 问题描述输入框 -->
+                    <div class="transfer-description-input">
+                      <textarea 
+                        v-model="message.description" 
+                        placeholder="请简要描述您的问题（选填）..."
+                        rows="3"
+                        class="description-textarea"
+                      ></textarea>
+                    </div>
+                    
+                    <!-- 操作按钮 -->
+                    <div class="transfer-actions">
+                      <button 
+                        class="transfer-btn enter-chat"
+                        @click="enterCustomerService(message)"
+                      >
+                        💬 进入在线客服
+                      </button>
+                    </div>
+                    
+                    <!-- 其他联系渠道 -->
+                    <div class="transfer-channels" v-if="message.channels && message.channels.length > 0">
+                      <div v-for="(channel, idx) in message.channels" :key="idx" class="channel-item">
+                        <span class="channel-label">{{ channel.label }}</span>
+                        <span class="channel-desc">{{ channel.desc }}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
                 </div>
               </div>
             </div>
@@ -493,6 +584,7 @@
 <script>
 import { fetchEventSource } from '@microsoft/fetch-event-source'
 import request from '../../utils/request'
+import eventBus from '../../utils/eventBus'
 import SentimentAnalysis from './SentimentAnalysis.vue'
 import SalesReport from './SalesReport.vue'
 import ProductRecommendation from './ProductRecommendation.vue'
@@ -588,7 +680,18 @@ export default {
     // 监听鼠标移动和释放事件
     document.addEventListener('mousemove', this.onMouseMove)
     document.addEventListener('mouseup', this.onMouseUp)
-    
+
+    // 监听打开客服事件
+    eventBus.$on('open-customer-service', () => {
+      if (!this.isOpen) {
+        this.toggleChatWindow()
+      }
+      if (this.currentMode !== 'customer') {
+        this.switchMode('customer')
+      }
+      this.showGreetingCard = false
+    })
+
     // 监听登录事件
     window.addEventListener('storage', (e) => {
       if (e.key === 'user') {
@@ -602,7 +705,10 @@ export default {
     // 移除事件监听
     document.removeEventListener('mousemove', this.onMouseMove)
     document.removeEventListener('mouseup', this.onMouseUp)
-    
+
+    // 移除事件总线监听
+    eventBus.$off('open-customer-service')
+
     // 取消正在进行的请求
     if (this.abortController) {
       this.abortController.abort()
@@ -824,6 +930,15 @@ export default {
         modeMessage = '已切换到对话模式，您可以与我自由聊天。'
       } else if (mode === 'help') {
         modeMessage = '已切换到智能帮助模式，我可以帮您执行购物相关操作。'
+      } else if (mode === 'customer') {
+        modeMessage = '已切换到智能客服模式！\n\n' +
+          '🤖 基于 ReAct 推理引擎，支持以下能力：\n' +
+          '• 商品搜索、推荐、详情查询\n' +
+          '• 购物车管理、订单创建与查询\n' +
+          '• 售后服务、退换货政策\n' +
+          '• 机票/酒店出行服务\n' +
+          '• 知识库问答\n\n' +
+          '💡 试试说："推荐适合我的商品"、"帮我查一下订单"'
       } else if (mode === 'purchase') {
         modeMessage = '已切换到真实购买模式！\n\n' +
           '🛍️ 支持以下真实购买功能：\n' +
@@ -839,8 +954,10 @@ export default {
         role: 'assistant',
         content: modeMessage
       })
-      // 滚动到底部
-      this.scrollToBottom()
+      // 强制更新视图并滚动到底部
+      this.$nextTick(() => {
+        this.scrollToBottom()
+      })
     },
     
     // 添加欢迎消息
@@ -1000,6 +1117,8 @@ export default {
         let apiUrl = 'http://localhost:9191/api/ai/chat/stream'
         if (this.currentMode === 'purchase') {
           apiUrl = 'http://localhost:9191/api/mcp/purchase/chat'
+        } else if (this.currentMode === 'customer') {
+          apiUrl = 'http://localhost:9191/api/ai/smart/chat/stream'
         }
         
         console.log('开始发送流式请求')
@@ -1122,7 +1241,8 @@ export default {
                 console.log('data.type:', data.type)
                 
                 // 如果已收到action事件，忽略后续的content事件，避免显示"抱歉，我暂时无法处理该请求"
-                if (self.hasReceivedAction) {
+                // 注意：智能客服模式（customer）需要同时显示商品卡片和文本内容，不跳过
+                if (self.hasReceivedAction && self.currentMode !== 'customer') {
                   console.log('已收到action事件，忽略content事件')
                   return
                 }
@@ -1195,7 +1315,13 @@ export default {
     // 使用普通请求作为 fallback
     async fallbackToRegularRequest(requestData) {
       try {
-        const data = await request.post('/api/ai/chat', requestData)
+        let fallbackUrl = '/api/ai/chat'
+        if (this.currentMode === 'purchase') {
+          fallbackUrl = '/api/mcp/purchase/chat'
+        } else if (this.currentMode === 'customer') {
+          fallbackUrl = '/api/ai/smart/chat'
+        }
+        const data = await request.post(fallbackUrl, requestData)
         if (data.content) {
           this.messages[this.aiMessageIndex].content = data.content
           this.scrollToBottom()
@@ -1346,8 +1472,13 @@ export default {
           this.handlePurchaseViewOrders(action.params)
           break
         case 'product_detail':
-          // MCP购买：商品详情选择
+          // MCP 购买：商品详情选择
           this.handleProductDetail(action.params)
+          break
+        case 'transfer_to_human':
+        case 'transferToHuman':
+          // 处理转人工客服
+          this.handleTransferToHuman(action.params)
           break
         default:
           console.log('未知操作类型:', action.type)
@@ -1848,6 +1979,51 @@ export default {
         // 如果没有数据，导航到订单列表页面
         this.$router.push('/orderList')
       }
+    },
+    
+    // 处理转人工客服
+    handleTransferToHuman(params) {
+      console.log('===== 转人工客服 =====')
+      console.log('params:', params)
+      
+      if (params && params.ticketNo) {
+        // 添加一个新的交互式消息卡片（类似推荐商品确认卡片）
+        this.messages.push({
+          role: 'assistant',
+          type: 'transferToHuman',
+          ticketNo: params.ticketNo,
+          message: params.message || '已为您创建工单，请填写问题描述后进入在线客服',
+          description: '',
+          channels: params.channels || [],
+          chatButtonUrl: params.chatButtonUrl || '/user-chat'
+        })
+        
+        // 显示成功提示
+        const ticketNo = params.ticketNo ? `工单编号：${params.ticketNo}` : ''
+        this.$message.success(`工单已创建，${ticketNo}，请填写问题描述后进入在线客服`)
+        
+        // 强制更新视图
+        this.$nextTick(() => {
+          this.scrollToBottom()
+        })
+      } else {
+        // 如果没有数据，显示默认提示
+        this.$message.info('正在为您转接人工客服，请稍候...')
+      }
+    },
+    
+    // 进入在线客服
+    enterCustomerService(ticketInfo) {
+      console.log('进入在线客服:', ticketInfo)
+      // 跳转到在线客服页面，并传递工单信息
+      this.$router.push({
+        path: ticketInfo.chatButtonUrl || '/user-chat',
+        query: {
+          ticketNo: ticketInfo.ticketNo,
+          ticketId: ticketInfo.ticketId,
+          fromAiChat: 'true'  // 标记是从 AI 客服跳转过来的
+        }
+      })
     },
     
     // 处理加载更多订单
@@ -3157,6 +3333,17 @@ export default {
   color: rgba(255, 255, 255, 0.85);
   font-size: 13px;
   font-weight: 400;
+}
+
+.mode-badge,
+.cs-badge {
+  background: #ff5000;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 1px 8px;
+  border-radius: 3px;
+  letter-spacing: 0.5px;
 }
 
 .history-toggle-btn {
@@ -6099,5 +6286,283 @@ export default {
 
 .panel-tool-icon {
   font-size: 18px;
+}
+
+/* 工单信息卡片样式 - 参考推荐商品确认卡片 */
+.ticket-info-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px;
+  background: linear-gradient(135deg, #fff9f0 0%, #fff5eb 100%);
+  border-radius: 12px;
+  border: 1px solid #ffe4c4;
+  box-shadow: 0 2px 8px rgba(255, 144, 0, 0.1);
+  margin-top: 8px;
+}
+
+.ticket-icon {
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+.ticket-content {
+  flex: 1;
+}
+
+.ticket-text {
+  margin-bottom: 12px;
+}
+
+.ticket-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #ff5000;
+  margin-bottom: 6px;
+}
+
+.ticket-no {
+  font-size: 13px;
+  color: #666;
+  margin-bottom: 4px;
+}
+
+.ticket-no strong {
+  color: #ff5000;
+}
+
+.ticket-desc {
+  font-size: 13px;
+  color: #333;
+  line-height: 1.5;
+}
+
+/* 问题描述输入框 */
+.ticket-description-input {
+  margin-bottom: 12px;
+}
+
+.description-textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 13px;
+  color: #333;
+  resize: vertical;
+  transition: border-color 0.3s;
+  font-family: inherit;
+}
+
+.description-textarea:focus {
+  outline: none;
+  border-color: #ff9000;
+}
+
+.description-textarea::placeholder {
+  color: #999;
+}
+
+/* 操作按钮 */
+.ticket-actions {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.ticket-btn {
+  flex: 1;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.ticket-btn.enter-chat {
+  background: linear-gradient(135deg, #ff9000 0%, #ff5000 100%);
+  color: white;
+  box-shadow: 0 2px 8px rgba(255, 144, 0, 0.3);
+}
+
+.ticket-btn.enter-chat:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(255, 144, 0, 0.4);
+}
+
+.ticket-btn.enter-chat:active {
+  transform: translateY(0);
+}
+
+/* 联系渠道列表 */
+.ticket-channels {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 144, 0, 0.15);
+}
+
+.channel-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 8px;
+  font-size: 13px;
+}
+
+.channel-label {
+  color: #666;
+  font-weight: 500;
+}
+
+.channel-desc {
+  color: #999;
+}
+
+.channel-label {
+  font-weight: 600;
+  color: #ff5000;
+}
+
+.channel-desc {
+  color: #666;
+}
+
+/* 转人工客服卡片 - 新版（类似推荐商品确认卡片） */
+.transfer-human-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px;
+  background: linear-gradient(135deg, #fff9f0 0%, #fff5eb 100%);
+  border-radius: 12px;
+  border: 1px solid #ffe4c4;
+  box-shadow: 0 2px 8px rgba(255, 144, 0, 0.1);
+  margin-top: 8px;
+}
+
+.transfer-icon {
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+.transfer-content {
+  flex: 1;
+}
+
+.transfer-text {
+  margin-bottom: 12px;
+}
+
+.transfer-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #ff5000;
+  margin-bottom: 6px;
+}
+
+.transfer-no {
+  font-size: 13px;
+  color: #666;
+  margin-bottom: 4px;
+}
+
+.transfer-no strong {
+  color: #ff5000;
+}
+
+.transfer-desc {
+  font-size: 13px;
+  color: #333;
+  line-height: 1.5;
+}
+
+.transfer-description-input {
+  margin-bottom: 12px;
+}
+
+.transfer-description-input .description-textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 13px;
+  color: #333;
+  resize: vertical;
+  transition: border-color 0.3s;
+  font-family: inherit;
+}
+
+.transfer-description-input .description-textarea:focus {
+  outline: none;
+  border-color: #ff9000;
+}
+
+.transfer-description-input .description-textarea::placeholder {
+  color: #999;
+}
+
+.transfer-actions {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.transfer-btn {
+  flex: 1;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.transfer-btn.enter-chat {
+  background: linear-gradient(135deg, #ff9000 0%, #ff5000 100%);
+  color: white;
+  box-shadow: 0 2px 8px rgba(255, 144, 0, 0.3);
+}
+
+.transfer-btn.enter-chat:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(255, 144, 0, 0.4);
+}
+
+.transfer-btn.enter-chat:active {
+  transform: translateY(0);
+}
+
+.transfer-channels {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 144, 0, 0.15);
+}
+
+.transfer-channels .channel-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 8px;
+  font-size: 13px;
+}
+
+.transfer-channels .channel-label {
+  color: #666;
+  font-weight: 500;
+}
+
+.transfer-channels .channel-desc {
+  color: #999;
 }
 </style>

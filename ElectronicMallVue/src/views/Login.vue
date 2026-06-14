@@ -77,6 +77,11 @@
               <span>还没有账号？</span>
               <a @click="$router.push('/register')" class="link-text">立即注册</a>
             </div>
+            
+            <div class="service-link">
+              <span>客服账号？</span>
+              <a @click="$router.push('/service-login')" class="link-text">客服登录</a>
+            </div>
           </el-form>
         </div>
       </div>
@@ -371,6 +376,29 @@ export default {
 
 .link-text:hover {
   color: #ff9000;
+  text-decoration: underline;
+}
+
+/* 客服登录链接 */
+.service-link {
+  text-align: center;
+  margin-top: 12px;
+  font-size: 14px;
+  color: #64748b;
+  padding-top: 12px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.service-link .link-text {
+  color: #1e3c72;
+  font-weight: 600;
+  cursor: pointer;
+  margin-left: 8px;
+  transition: color 0.3s ease;
+}
+
+.service-link .link-text:hover {
+  color: #2a5298;
   text-decoration: underline;
 }
 

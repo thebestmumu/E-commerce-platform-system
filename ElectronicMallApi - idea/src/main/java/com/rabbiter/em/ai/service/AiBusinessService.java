@@ -2846,7 +2846,6 @@ public class AiBusinessService {
             
         } catch (Exception e) {
             log.error("调用Python词云脚本失败：{}", e.getMessage(), e);
-            e.printStackTrace();
         }
         
         return wordCloudData;
